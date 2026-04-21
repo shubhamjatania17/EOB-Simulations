@@ -14,3 +14,6 @@ This repository contains interactive web simulations designed to demonstrate:
 - **Nandini Goyal** (I027)
 - **Kanak Gupta** (I028)
 - **Shubham Jatania** (I034)
+
+## MVP Link
+- **Netlify Link:** <https://adhesion-science.netlify.app/>
