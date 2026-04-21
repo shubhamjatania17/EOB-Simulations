@@ -260,6 +260,58 @@
             color: var(--teal);
         }
 
+        #presentation .grid {
+            grid-template-columns: 1fr;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        /* --- CANVA EMBED --- */
+        .canva-embed-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-top: 56.25%;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            will-change: transform;
+            transition: var(--transition);
+        }
+
+        .canva-embed-container:hover {
+            border-color: var(--green);
+            transform: scale(1.01);
+            box-shadow: 0 20px 50px rgba(0, 229, 139, 0.15);
+        }
+
+        .canva-embed-container iframe {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            border: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .embed-footer-link {
+            display: block;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-decoration: none;
+            transition: var(--transition);
+            margin-top: 0.5rem;
+        }
+
+        .embed-footer-link:hover {
+            color: var(--green);
+        }
+
         /* --- CREDITS SECTION --- */
         #credits {
             text-align: center;
@@ -297,6 +349,24 @@
         }
 
         .member-id {
+            font-size: 0.8rem;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .member-sap-id {
+            font-size: 0.8rem;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .member-division {
             font-size: 0.8rem;
             color: var(--muted);
             letter-spacing: 0.1em;
@@ -442,15 +512,21 @@
                 <div class="ppt-icon">🦎</div>
                 <h3 class="card-title">Gecko Inspired Tapes</h3>
                 <p class="section-desc">Technical breakdown of hierarchical dry adhesion and van der Waals interactions.</p>
-                <!-- REPLACE THE HREF BELOW WITH THE GECKO CANVA LINK -->
-                <a href="https://canva.link/novvjvxm8o5cttq" target="_blank" class="btn btn-outline">View Presentation</a>
+                
+                <div class="canva-embed-container">
+                    <iframe loading="lazy" src="https://www.canva.com/design/DAHHgNHr3zo/1gst4BYXJ2wNxJ4X84vbtw/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen"></iframe>
+                </div>
+                <a class="embed-footer-link" href="https://www.canva.com/design/DAHHgNHr3zo/1gst4BYXJ2wNxJ4X84vbtw/view?utm_content=DAHHgNHr3zo&amp;utm_campaign=designshare&amp;utm_medium=embeds&amp;utm_source=link" target="_blank" rel="noopener">Gecko Inspired Tapes • Interactive Presentation</a>
             </div>
             <div class="card">
                 <div class="ppt-icon">🐚</div>
-                <h3 class="card-title">Mussel Inspired Glues</h3>
+                <h3 class="card-title">Mussel Inspired Adhesion</h3>
                 <p class="section-desc">Analysis of catechol-based chemical bonding and underwater adhesive mechanisms.</p>
-                <!-- REPLACE THE HREF BELOW WITH THE MUSSEL CANVA LINK -->
-                <a href="https://canva.link/1s13fkcf8t0pyiw" target="_blank" class="btn btn-outline">View Presentation</a>
+                
+                <div class="canva-embed-container">
+                    <iframe loading="lazy" src="https://www.canva.com/design/DAHHgLdLjEk/3aP6_cmBbuD6yZOaU0vSuA/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen"></iframe>
+                </div>
+                <a class="embed-footer-link" href="https://www.canva.com/design/DAHHgLdLjEk/3aP6_cmBbuD6yZOaU0vSuA/view?utm_content=DAHHgLdLjEk&amp;utm_campaign=designshare&amp;utm_medium=embeds&amp;utm_source=link" target="_blank" rel="noopener">Mussel Inspired Adhesion • Interactive Presentation</a>
             </div>
         </div>
     </section>
@@ -464,24 +540,29 @@
             <div class="team-member">
                 <div class="member-name">Kabir Goswami</div>
                 <div class="member-id">I026</div>
+                <div class="member-division">BTech AI I1</div>
                 <div class="member-credit">Presented Mussel Inspired Adhesion</div>
                 <div class="member-github"><a href="[GITHUB_LINK]" target="_blank">View GitHub</a></div>
             </div>
             <div class="team-member">
                 <div class="member-name">Nandini Goyal</div>
                 <div class="member-id">I027</div>
+                <div class="member-division">BTech AI I1</div>
                 <div class="member-credit">Presented Gecko Inspired Tapes</div>
                 <div class="member-github"><a href="[GITHUB_LINK]" target="_blank">View GitHub</a></div>
             </div>
             <div class="team-member">
                 <div class="member-name">Kanak Gupta</div>
                 <div class="member-id">I028</div>
+                <div class="member-division">BTech AI I1</div>
                 <div class="member-credit">Presented Mussel Inspired Adhesion</div>
                 <div class="member-github"><a href="[GITHUB_LINK]" target="_blank">View GitHub</a></div>
             </div>
             <div class="team-member">
                 <div class="member-name">Shubham Jatania</div>
+                <div class="member-sap-id">70122500066</div>
                 <div class="member-id">I034</div>
+                <div class="member-division">BTech AI I1</div>
                 <div class="member-credit">Presented Gecko Inspired Tapes</div>
                 <div class="member-github"><a href="https://github.com/shubhamjatania17" target="_blank">View GitHub</a></div>
             </div>
