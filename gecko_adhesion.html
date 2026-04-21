@@ -1843,7 +1843,7 @@ function drawGeckoDemoFull(c, obj) {
   ctx.clearRect(0,0,W,H); ctx.fillStyle='#05070d'; ctx.fillRect(0,0,W,H);
   const surfY=H*0.68, t=S.objTime;
   const roughness={glass:0.02,tile:0.12,bark:0.42,teflon:0.04}[obj.id]||0.08;
-  const surfColor={glass:'#4ac8ff',tile:'#ffb020',bark:'rgba(180,120,60,1)',teflon:'#b07eff'}[obj.id]||'#4ac8ff';
+  const surfColor={glass:'#4ac8ff',tile:'#ffb020',bark:'#b4783c',teflon:'#b07eff'}[obj.id]||'#4ac8ff';
 
   // Surface
   ctx.fillStyle='rgba(12,16,28,0.9)'; ctx.fillRect(0,surfY+6,W,H-surfY);
@@ -1907,7 +1907,7 @@ function drawGlueDemoFull(c, obj) {
   ctx.clearRect(0,0,W,H); ctx.fillStyle='#05070d'; ctx.fillRect(0,0,W,H);
   const surfY=H*0.68, t=S.objTime;
   const roughness={glass:0.02,tile:0.12,bark:0.42,teflon:0.04}[obj.id]||0.08;
-  const surfColor={glass:'#4ac8ff',tile:'#ffb020',bark:'rgba(180,120,60,1)',teflon:'#b07eff'}[obj.id]||'#4ac8ff';
+  const surfColor={glass:'#4ac8ff',tile:'#ffb020',bark:'#b4783c',teflon:'#b07eff'}[obj.id]||'#4ac8ff';
   const bond=obj.glueGrip/100;
 
   ctx.fillStyle='rgba(12,16,28,0.9)'; ctx.fillRect(0,surfY+6,W,H-surfY);
@@ -1928,8 +1928,9 @@ function drawGlueDemoFull(c, obj) {
   for(let i=0;i<8;i++) {
     const dx=W*0.1+i*(W*0.8/7);
     const dripH=(6+roughness*20)*bond+Math.sin(t*0.5+i)*3;
+    const rH=Math.max(0.1, dripH/2);
     ctx.fillStyle=`rgba(255,140,0,${0.3+bond*0.3})`;
-    ctx.beginPath(); ctx.ellipse(dx,surfY+5+dripH/2,4,dripH/2,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(dx,surfY+5+rH,4,rH,0,0,Math.PI*2); ctx.fill();
   }
   ctx.fillStyle='rgba(255,140,0,0.7)'; ctx.font='11px DM Sans';
   ctx.fillText('Chemical glue layer — polymer penetration',W*0.1,glueY-5);
