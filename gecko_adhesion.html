@@ -439,6 +439,46 @@ select.ctrl-sel option { background:#0d1120; }
 .opt-mini-unit { font-family:'DM Sans',sans-serif; font-size:0.75rem; color:var(--muted); margin-left:0.2rem; }
 .opt-mini-note { font-size:0.72rem; color:var(--lime); margin-top:0.1rem; }
 
+/* Surface Selector in Optimization */
+.opt-surf-selector {
+  display: flex;
+  gap: 0.6rem;
+  margin: 1.8rem 0;
+  flex-wrap: wrap;
+}
+.opt-surf-card {
+  flex: 1;
+  min-width: 90px;
+  background: rgba(13, 17, 32, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 0.8rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+.opt-surf-card:hover {
+  background: rgba(13, 17, 32, 0.9);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-3px);
+}
+.opt-surf-card.selected {
+  background: rgba(200, 255, 0, 0.04);
+  border-color: var(--lime);
+  box-shadow: 0 0 20px rgba(200, 255, 0, 0.08);
+}
+.opt-surf-card.selected .osc-name { color: var(--lime); }
+.osc-dot { width: 8px; height: 8px; border-radius: 50%; }
+.osc-name {
+  font-size: 0.68rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em; text-align: center;
+}
+.osc-sub { font-size: 0.6rem; color: var(--dim); margin-top: -2px; }
+
 /* ── APPLICATIONS ─────────────────────────────────────────────── */
 #applications { background:radial-gradient(ellipse at 75% 40%, rgba(176,126,255,0.06) 0%, transparent 50%); flex-direction:column; }
 .app-card {
@@ -817,8 +857,14 @@ footer {
       <h2 class="section-title">Optimal Design Prediction</h2>
       <p class="section-body">Using gradient descent on the adhesion model, we predict the optimal microstructure for any target surface. The parameter space is 5-dimensional: density, angle, size, length, and branching ratio.</p>
       <p class="section-body">Nature already found the near-global maximum for smooth glass. For rough or elastic substrates, different geometries outperform the biological archetype by up to 50%.</p>
-      <button class="btn btn-green" onclick="runOpt()" style="max-width:240px;margin-top:1rem;">▶ Run Optimization</button>
-      <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--muted);" id="opt-status">Select surface in simulator, then run.</div>
+      
+      <div style="font-size:0.7rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.15em; margin-bottom:0.8rem;">Select Target Surface</div>
+      <div class="opt-surf-selector" id="opt-surf-selector">
+        <!-- Populated by JS -->
+      </div>
+
+      <button class="btn btn-green" onclick="runOpt()" style="max-width:240px; margin-top:1rem;">▶ Run Optimization</button>
+      <div style="margin-top:1.2rem; font-size:0.8rem; font-family:'JetBrains Mono', monospace; color:var(--muted);" id="opt-status">System ready. Select surface to begin search.</div>
     </div>
     <div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;" class="reveal rd1">
@@ -970,6 +1016,19 @@ function onSlider(param, val) {
       el.classList.add('flash');
       setTimeout(() => el.classList.remove('flash'), 300);
     }
+  }
+
+  // Update logic for specific parameters
+  if (param === 'surface') {
+    // Update main simulator dropdown
+    const sel = document.getElementById('csurf');
+    if (sel) sel.value = val;
+    
+    // Update optimization cards
+    const cards = document.querySelectorAll('.opt-surf-card');
+    cards.forEach(c => {
+      c.classList.toggle('selected', c.dataset.id === val);
+    });
   }
 
   // Show effect banner
@@ -1956,9 +2015,30 @@ document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
 /* ============================================================
    INIT
    ============================================================ */
+/* Initialize surface cards in optimization section */
+function initOptSurfaces() {
+  const container = document.getElementById('opt-surf-selector');
+  if(!container) return;
+  
+  Object.keys(SURFACES).forEach(key => {
+    const surf = SURFACES[key];
+    const card = document.createElement('div');
+    card.className = 'opt-surf-card' + (S.surface === key ? ' selected' : '');
+    card.dataset.id = key;
+    card.innerHTML = `
+      <div class="osc-dot" style="background:${surf.color}; box-shadow: 0 0 10px ${surf.color}66"></div>
+      <div class="osc-name">${surf.name.split(' ')[1] || surf.name}</div>
+      <div class="osc-sub">${surf.name.split(' ')[0]}</div>
+    `;
+    card.onclick = () => onSlider('surface', key);
+    container.appendChild(card);
+  });
+}
+
 window.addEventListener('load', ()=>{
   initSim();
   initObjectDemo();
+  initOptSurfaces();
 });
 </script>
 </body>
