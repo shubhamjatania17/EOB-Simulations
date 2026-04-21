@@ -304,22 +304,35 @@
             display: block;
         }
 
-        .member-repo a {
-            color: var(--green);
-            text-decoration: none;
-            font-size: 0.8rem;
-            font-weight: 500;
-            transition: var(--transition);
+        .member-github {
+            margin-top: 1rem;
         }
 
-        .member-repo a:hover {
-            color: var(--snow);
-            text-decoration: underline;
+        .member-github a {
+            display: inline-block;
+            padding: 0.5rem 1.2rem;
+            background: rgba(0, 229, 139, 0.1);
+            border: 1px solid var(--green);
+            color: var(--green);
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 100px;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .member-github a:hover {
+            background: var(--green);
+            color: var(--bg);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 229, 139, 0.2);
         }
 
         .repo-link-container {
             margin-top: 3rem;
-            padding: 2rem;
+            padding-top: 2rem;
             border-top: 1px solid var(--border);
             width: 100%;
         }
@@ -457,6 +470,10 @@
                 <div class="member-id">I034</div>
                 <div class="member-github"><a href="[GITHUB_LINK]" target="_blank">View GitHub</a></div>
             </div>
+        </div>
+
+        <div class="repo-link-container">
+            <a href="[GITHUB_LINK]" target="_blank" class="btn btn-outline" style="padding: 1rem 3rem;">View Full Project Repository</a>
         </div>
     </section>
 
