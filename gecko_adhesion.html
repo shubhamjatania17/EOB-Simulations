@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeckoSim — Adhesive Physics Simulator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Playfair+Display:ital,wght@0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #07090f;
+  --surf:    #0d1120;
+  --card:    rgba(13,17,32,0.9);
+  --lime:    #c8ff00;
+  --lime2:   #a0cc00;
+  --amber:   #ffb020;
+  --coral:   #ff5e5e;
+  --sky:     #4ac8ff;
+  --violet:  #b07eff;
+  --emerald: #00dda0;
+  --snow:    #f0f4ff;
+  --body:    #c8d0e8;
+  --muted:   #6070a0;
+  --dim:     #3a4560;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--snow);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── NAV ─────────────────────────────────────────────────────── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:300;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:0.9rem 3rem;
+  background: rgba(7,9,15,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(200,255,0,0.12);
+}
+.nav-brand {
+  font-family:'Playfair Display', serif;
+  font-size:1.15rem; font-weight:700;
+  color: var(--lime);
+}
+.nav-brand span { color:var(--body); font-weight:400; font-style:italic; }
+.nav-links { display:flex; gap:2rem; list-style:none; }
+.nav-links a {
+  font-size:0.78rem; font-weight:500; letter-spacing:0.06em;
+  color: var(--muted); text-decoration:none; transition:color 0.2s;
+}
+.nav-links a:hover { color:var(--lime); }
+.nav-live { display:flex; align-items:center; gap:0.5rem; font-size:0.75rem; color:var(--lime); font-weight:500; }
+.nav-dot { width:7px; height:7px; border-radius:50%; background:var(--lime); animation:blink 1.6s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── SECTIONS ───────────────────────────────────────────────── */
+section {
+  min-height:100vh;
+  display:flex; align-items:center;
+  padding: 7rem 3rem 4rem;
+  position:relative; overflow:hidden;
+}
+.section-tag {
+  position:absolute; top:5.5rem; left:3rem;
+  font-size:0.7rem; font-weight:500; letter-spacing:0.2em;
+  text-transform:uppercase; color:var(--dim);
+}
+.section-eyebrow {
+  font-size:0.72rem; font-weight:600; letter-spacing:0.22em;
+  text-transform:uppercase; color:var(--lime); margin-bottom:0.7rem;
+}
+.section-title {
+  font-family:'Playfair Display', serif;
+  font-size: clamp(2rem,3.5vw,3rem); font-weight:700;
+  line-height:1.1; color:var(--snow); margin-bottom:1.2rem;
+}
+.section-body {
+  font-size:0.95rem; color:var(--body); line-height:1.85;
+  margin-bottom:1rem;
+}
+
+/* ── HERO ───────────────────────────────────────────────────── */
+#hero {
+  flex-direction:column; justify-content:center;
+  text-align:center; min-height:100vh;
+}
+#hero-canvas { position:absolute; inset:0; width:100%; height:100%; z-index:0; }
+.hero-overlay {
+  position:absolute; inset:0; z-index:1;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(200,255,0,0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(74,200,255,0.07) 0%, transparent 45%),
+    linear-gradient(180deg, rgba(7,9,15,0.1) 0%, rgba(7,9,15,0.65) 100%);
+}
+.hero-content { position:relative; z-index:2; max-width:860px; }
+.hero-chips { display:flex; justify-content:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.8rem; animation:riseIn 0.9s both; }
+.chip {
+  font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase;
+  padding:0.3rem 0.9rem; border-radius:2px; border:1px solid;
+}
+.chip-lime   { color:var(--lime);   border-color:rgba(200,255,0,0.4);   background:rgba(200,255,0,0.07); }
+.chip-sky    { color:var(--sky);    border-color:rgba(74,200,255,0.4);  background:rgba(74,200,255,0.07); }
+.chip-amber  { color:var(--amber);  border-color:rgba(255,176,32,0.4);  background:rgba(255,176,32,0.07); }
+.chip-violet { color:var(--violet); border-color:rgba(176,126,255,0.4); background:rgba(176,126,255,0.07); }
+.hero-title {
+  font-family:'Playfair Display', serif;
+  font-size:clamp(4rem,10vw,9rem); font-weight:700;
+  line-height:0.92; letter-spacing:-0.03em;
+  animation:riseIn 0.9s 0.1s both;
+}
+.ht-main {
+  display:block;
+  background:linear-gradient(130deg,#c8ff00 0%,#a0cc00 40%,#ffb020 75%,#fff 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  filter:drop-shadow(0 0 60px rgba(200,255,0,0.25));
+}
+.ht-sub { display:block; font-style:italic; font-weight:400; color:rgba(200,210,240,0.65); font-size:0.55em; margin-top:0.3rem; }
+.hero-lead {
+  margin:1.5rem auto 0; font-size:1rem; color:var(--body); line-height:1.85;
+  max-width:580px; animation:riseIn 0.9s 0.22s both;
+}
+.hero-stats {
+  margin-top:2.5rem; display:flex; justify-content:center; gap:3rem;
+  flex-wrap:wrap; animation:riseIn 0.9s 0.35s both;
+}
+.hstat { text-align:center; }
+.hstat-val {
+  font-family:'Playfair Display', serif; font-size:2.4rem; font-weight:700;
+  color:var(--lime); line-height:1; filter:drop-shadow(0 0 20px rgba(200,255,0,0.45));
+}
+.hstat-label { font-size:0.72rem; font-weight:500; color:var(--muted); margin-top:0.3rem; letter-spacing:0.06em; }
+.hsep { width:1px; height:60px; background:rgba(200,255,0,0.2); align-self:center; }
+.scroll-cue {
+  margin-top:3rem; display:flex; flex-direction:column; align-items:center; gap:0.5rem;
+  animation:riseIn 0.9s 0.5s both;
+}
+.scroll-cue span { font-size:0.68rem; font-weight:500; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); }
+.scroll-line { width:1px; height:50px; background:linear-gradient(to bottom, var(--lime), transparent); animation:scrollPulse 2s ease-in-out infinite; }
+@keyframes scrollPulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+@keyframes riseIn { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── LAYOUT HELPERS ─────────────────────────────────────────── */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; width:100%; max-width:1200px; margin:0 auto; }
+.three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:1.6rem; width:100%; max-width:1200px; margin:0 auto; }
+
+/* ── CARDS ──────────────────────────────────────────────────── */
+.card {
+  background:var(--card); border:1px solid rgba(200,255,0,0.1);
+  border-radius:4px; padding:1.6rem; transition:all 0.3s; position:relative; overflow:hidden;
+}
+.card:hover { border-color:rgba(200,255,0,0.3); transform:translateY(-4px); box-shadow:0 20px 50px rgba(200,255,0,0.06); }
+.card:nth-child(1) { border-top:2px solid var(--lime); }
+.card:nth-child(2) { border-top:2px solid var(--sky); }
+.card:nth-child(3) { border-top:2px solid var(--amber); }
+.card:nth-child(4) { border-top:2px solid var(--violet); }
+.card:nth-child(5) { border-top:2px solid var(--coral); }
+.card:nth-child(6) { border-top:2px solid var(--emerald); }
+.card-title { font-family:'Playfair Display', serif; font-size:1.05rem; margin-bottom:0.5rem; color:var(--snow); }
+.card-body { font-size:0.85rem; color:var(--body); line-height:1.8; }
+
+/* ── READOUT BOX ────────────────────────────────────────────── */
+.readout {
+  background:rgba(200,255,0,0.04); border:1px solid rgba(200,255,0,0.12);
+  border-radius:4px; padding:0.8rem;
+}
+.readout-row { display:flex; justify-content:space-between; align-items:center; padding:0.25rem 0; }
+.readout-key { font-size:0.78rem; color:var(--muted); font-weight:500; }
+.readout-val { font-size:0.85rem; color:var(--lime); font-weight:600; font-family:'JetBrains Mono',monospace; }
+
+/* ── STRIP DIVIDER ──────────────────────────────────────────── */
+.strip {
+  width:100%; padding:1.5rem 0; position:relative; text-align:center;
+  border-top:1px solid rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.strip-text {
+  font-family:'Playfair Display', serif; font-size:clamp(1.1rem,2vw,1.6rem);
+  font-style:italic; color:rgba(200,215,255,0.35);
+}
+
+/* ── SIMULATOR ──────────────────────────────────────────────── */
+#simulator { flex-direction:column; padding-top:6rem; min-height:auto; padding-bottom:4rem; }
+
+.sim-layout {
+  display:grid;
+  grid-template-columns: 280px 1fr 280px;
+  gap:1.2rem;
+  width:100%; max-width:1340px; margin:1.5rem auto 0;
+  height:640px;
+}
+
+/* Panels */
+.panel {
+  background:var(--card); border:1px solid rgba(200,255,0,0.1);
+  border-radius:4px; padding:1.2rem; overflow-y:auto; display:flex; flex-direction:column; gap:1rem;
+}
+.panel::-webkit-scrollbar { width:3px; }
+.panel::-webkit-scrollbar-thumb { background:rgba(200,255,0,0.2); }
+.panel-title {
+  font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--lime); border-bottom:1px solid rgba(200,255,0,0.12); padding-bottom:0.6rem; margin-bottom:0.3rem;
+}
+
+/* Controls */
+.ctrl { display:flex; flex-direction:column; gap:0.4rem; }
+.ctrl-label {
+  font-size:0.8rem; font-weight:500; color:var(--body);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.ctrl-val {
+  font-family:'JetBrains Mono',monospace; font-size:0.8rem;
+  font-weight:600; color:var(--lime); background:rgba(200,255,0,0.08);
+  padding:0.15rem 0.5rem; border-radius:2px;
+  min-width:60px; text-align:center;
+  transition:background 0.15s;
+}
+.ctrl-val.flash { background:rgba(200,255,0,0.28); }
+
+input[type=range] {
+  -webkit-appearance:none; width:100%; height:3px;
+  background:rgba(200,255,0,0.15); border-radius:2px; outline:none; cursor:pointer;
+  transition:background 0.2s;
+}
+input[type=range]:hover { background:rgba(200,255,0,0.25); }
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:15px; height:15px; border-radius:50%;
+  background:var(--bg); border:2.5px solid var(--lime); cursor:pointer;
+  transition:box-shadow 0.2s;
+}
+input[type=range]::-webkit-slider-thumb:hover { box-shadow:0 0 0 5px rgba(200,255,0,0.18); }
+
+select.ctrl-sel {
+  background:rgba(7,9,15,0.9); border:1px solid rgba(200,255,0,0.2);
+  color:var(--snow); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500;
+  padding:0.5rem 0.7rem; border-radius:3px; outline:none; cursor:pointer; width:100%;
+}
+select.ctrl-sel option { background:#0d1120; }
+
+/* Buttons */
+.btn {
+  padding:0.65rem; font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:600;
+  letter-spacing:0.08em; text-transform:uppercase; border-radius:3px;
+  border:1.5px solid; cursor:pointer; transition:all 0.2s; width:100%; text-align:center;
+}
+.btn-green  { color:var(--lime);  border-color:rgba(200,255,0,0.4);  background:rgba(200,255,0,0.08); }
+.btn-orange { color:var(--amber); border-color:rgba(255,176,32,0.4); background:rgba(255,176,32,0.07); }
+.btn-red    { color:var(--coral); border-color:rgba(255,94,94,0.4);  background:rgba(255,94,94,0.07); }
+.btn-green:hover  { background:var(--lime);  color:#06080e; box-shadow:0 0 28px rgba(200,255,0,0.35); }
+.btn-orange:hover { background:var(--amber); color:#06080e; box-shadow:0 0 28px rgba(255,176,32,0.3); }
+.btn-red:hover    { background:var(--coral); color:#fff; }
+
+/* Center canvas */
+.sim-center {
+  background:#06080e; border:1px solid rgba(200,255,0,0.15); border-radius:4px;
+  position:relative; overflow:hidden;
+}
+#main-canvas { display:block; width:100%!important; height:100%!important; }
+
+/* Canvas overlays */
+.canvas-badge {
+  position:absolute; top:0.7rem; left:0.7rem;
+  font-family:'JetBrains Mono',monospace; font-size:0.65rem; font-weight:500;
+  color:var(--lime); background:rgba(6,8,14,0.85);
+  padding:0.25rem 0.65rem; border:1px solid rgba(200,255,0,0.2); border-radius:2px;
+}
+.canvas-force {
+  position:absolute; top:0.7rem; right:0.7rem;
+  font-family:'JetBrains Mono',monospace; font-size:0.75rem; font-weight:600;
+  padding:0.35rem 0.9rem; border:1px solid; border-radius:2px;
+  transition:all 0.2s;
+}
+.cf-strong { color:var(--lime);  border-color:rgba(200,255,0,0.4);  background:rgba(200,255,0,0.1); }
+.cf-medium { color:var(--amber); border-color:rgba(255,176,32,0.4); background:rgba(255,176,32,0.1); }
+.cf-weak   { color:var(--coral); border-color:rgba(255,94,94,0.4);  background:rgba(255,94,94,0.1); }
+
+/* State badge */
+.state-badge {
+  font-size:0.78rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+  padding:0.5rem 0.9rem; border-radius:3px; border:1.5px solid; text-align:center;
+}
+.sb-on    { color:var(--lime);  border-color:rgba(200,255,0,0.5);  background:rgba(200,255,0,0.1); }
+.sb-mid   { color:var(--amber); border-color:rgba(255,176,32,0.5); background:rgba(255,176,32,0.1); }
+.sb-off   { color:var(--coral); border-color:rgba(255,94,94,0.5);  background:rgba(255,94,94,0.1); }
+
+/* Meters */
+.meter { display:flex; flex-direction:column; gap:0.3rem; }
+.meter-head { display:flex; justify-content:space-between; align-items:center; }
+.meter-key { font-size:0.78rem; font-weight:500; color:var(--body); }
+.meter-num {
+  font-family:'JetBrains Mono',monospace; font-size:0.78rem;
+  font-weight:600; color:var(--snow);
+}
+.meter-track { height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; }
+.meter-fill { height:100%; border-radius:3px; transition:width 0.35s cubic-bezier(0.16,1,0.3,1); }
+.mf-lime   { background:linear-gradient(90deg,var(--lime2),var(--lime)); }
+.mf-sky    { background:linear-gradient(90deg,#2eb0e0,var(--sky)); }
+.mf-amber  { background:linear-gradient(90deg,#e08000,var(--amber)); }
+.mf-violet { background:linear-gradient(90deg,#7040cc,var(--violet)); }
+
+/* Force graph */
+.graph-wrap { background:#06080e; border:1px solid rgba(200,255,0,0.1); border-radius:3px; padding:0.8rem; }
+.graph-title { font-size:0.65rem; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:0.5rem; }
+
+/* Mode tabs */
+.mode-tabs { display:flex; gap:0.3rem; }
+.mode-tab {
+  flex:1; padding:0.5rem; font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:600;
+  letter-spacing:0.06em; text-transform:uppercase; text-align:center;
+  background:transparent; border:1.5px solid rgba(200,255,0,0.15);
+  color:var(--muted); cursor:pointer; transition:all 0.2s; border-radius:3px;
+}
+.mode-tab.active { background:rgba(200,255,0,0.1); color:var(--lime); border-color:rgba(200,255,0,0.4); }
+.mode-tab:hover:not(.active) { color:var(--body); border-color:rgba(200,255,0,0.25); }
+
+/* Slider feedback banner — live change indicator */
+.param-banner {
+  position:absolute; bottom:0; left:0; right:0;
+  background:rgba(200,255,0,0.12); border-top:1px solid rgba(200,255,0,0.3);
+  padding:0.4rem 1rem; font-family:'JetBrains Mono',monospace; font-size:0.72rem;
+  color:var(--lime); font-weight:600; letter-spacing:0.04em;
+  transform:translateY(100%); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1);
+  z-index:10;
+}
+.param-banner.show { transform:translateY(0); }
+
+/* ── OBJECT DEMO ─────────────────────────────────────────────── */
+#objects { background:radial-gradient(ellipse at 70% 40%, rgba(176,126,255,0.07) 0%, transparent 55%); flex-direction:column; }
+.obj-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:1.2rem;
+  width:100%; max-width:1200px; margin:2rem auto 0;
+}
+.obj-card {
+  background:var(--card); border:1px solid rgba(255,255,255,0.08);
+  border-radius:4px; overflow:hidden; cursor:pointer;
+  transition:all 0.3s;
+}
+.obj-card.selected { border-color:var(--lime); box-shadow:0 0 30px rgba(200,255,0,0.12); }
+.obj-card:hover { transform:translateY(-3px); }
+.obj-canvas-wrap { position:relative; height:160px; background:#04060c; }
+.obj-canvas-wrap canvas { width:100%!important; height:100%!important; display:block; }
+.obj-card-body { padding:1rem; }
+.obj-card-name { font-size:0.9rem; font-weight:700; color:var(--snow); margin-bottom:0.2rem; }
+.obj-card-sub  { font-size:0.75rem; color:var(--muted); line-height:1.6; margin-bottom:0.7rem; }
+
+.adhesion-compare {
+  display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;
+}
+.adh-item {
+  border-radius:3px; padding:0.4rem 0.6rem; font-size:0.72rem; font-weight:600;
+}
+.adh-gecko { background:rgba(200,255,0,0.1); border:1px solid rgba(200,255,0,0.3); }
+.adh-glue  { background:rgba(255,94,94,0.08); border:1px solid rgba(255,94,94,0.25); }
+.adh-label { color:var(--muted); font-size:0.62rem; font-weight:500; display:block; margin-bottom:0.15rem; }
+.adh-val { color:var(--snow); font-family:'JetBrains Mono',monospace; }
+.adh-gecko .adh-val { color:var(--lime); }
+.adh-glue  .adh-val { color:var(--coral); }
+
+/* Object demo full comparison */
+.obj-demo-area {
+  width:100%; max-width:1200px; margin:2rem auto 0;
+  background:var(--card); border:1px solid rgba(200,255,0,0.12); border-radius:4px;
+  overflow:hidden;
+}
+.obj-demo-header {
+  display:grid; grid-template-columns:1fr 1fr;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.odh {
+  padding:1rem 1.5rem; font-size:0.8rem; font-weight:700;
+  letter-spacing:0.08em; text-transform:uppercase;
+  display:flex; align-items:center; gap:0.6rem;
+}
+.odh-gecko { color:var(--lime);  background:rgba(200,255,0,0.05); border-right:1px solid rgba(255,255,255,0.06); }
+.odh-glue  { color:var(--coral); background:rgba(255,94,94,0.04); }
+.obj-demo-canvases { display:grid; grid-template-columns:1fr 1fr; }
+.obj-demo-canvas-wrap { position:relative; height:280px; }
+.obj-demo-canvas-wrap canvas { width:100%!important; height:100%!important; display:block; }
+.obj-demo-canvas-wrap:first-child { border-right:1px solid rgba(255,255,255,0.06); }
+
+/* ── VAN DER WAALS ────────────────────────────────────────────── */
+#vdw {
+  background:radial-gradient(ellipse at 60% 50%, rgba(255,176,32,0.06) 0%, transparent 55%);
+}
+.vdw-layout { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; width:100%; max-width:1200px; margin:0 auto; }
+.formula-box {
+  background:rgba(255,176,32,0.05); border:1px solid rgba(255,176,32,0.2);
+  border-radius:4px; padding:1.8rem; text-align:center;
+}
+.formula-eq { font-family:'Playfair Display',serif; font-size:1.7rem; color:var(--amber); margin:0.8rem 0; }
+.formula-note { font-size:0.82rem; color:var(--body); line-height:1.8; }
+.formula-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:1rem; }
+.fgi { background:rgba(255,176,32,0.05); border-left:2px solid rgba(255,176,32,0.35); padding:0.45rem 0.7rem; }
+.fgi-sym { color:var(--amber); font-size:0.88rem; font-weight:700; display:block; margin-bottom:0.1rem; }
+.fgi-desc { font-size:0.72rem; color:var(--muted); }
+
+/* ── COMPARISON ──────────────────────────────────────────────── */
+#comparison { background:radial-gradient(ellipse at 70% 40%, rgba(176,126,255,0.07) 0%, transparent 55%); flex-direction:column; }
+.cmp-grid { display:grid; grid-template-columns:1fr 2px 1fr; width:100%; max-width:1100px; margin:0 auto; }
+.cmp-div { background:rgba(200,255,0,0.12); }
+.cmp-side { padding:2rem 2.5rem; }
+.cmp-head { font-family:'Playfair Display',serif; font-size:1.6rem; margin-bottom:1.5rem; }
+.cmp-head-gecko { color:var(--lime); }
+.cmp-head-glue  { color:var(--muted); font-style:italic; }
+.cmp-row { display:flex; justify-content:space-between; align-items:baseline; padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+.cmp-prop { font-size:0.82rem; color:var(--muted); }
+.cmp-val  { font-size:0.85rem; font-weight:600; }
+.cv-good { color:var(--lime); }
+.cv-bad  { color:var(--coral); }
+.cv-mid  { color:var(--amber); }
+
+/* ── BIOLOGY ─────────────────────────────────────────────────── */
+#biology { background:radial-gradient(ellipse at 20% 60%, rgba(74,200,255,0.06) 0%, transparent 50%); }
+.bio-legend {
+  position:absolute; top:1rem; right:1rem;
+  background:rgba(7,9,15,0.9); border:1px solid rgba(74,200,255,0.2);
+  padding:0.8rem 1rem; border-radius:3px;
+}
+.bl-row { display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; font-size:0.75rem; color:var(--body); }
+.bl-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* ── OPTIMIZATION ─────────────────────────────────────────────── */
+#optimization { background:radial-gradient(ellipse at 40% 50%, rgba(0,221,160,0.06) 0%, transparent 55%); }
+.opt-layout { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; width:100%; max-width:1200px; margin:0 auto; }
+.opt-mini { background:var(--card); border:1px solid rgba(0,221,160,0.15); border-radius:4px; padding:1.2rem; margin-bottom:0.8rem; }
+.opt-mini-label { font-size:0.7rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--emerald); margin-bottom:0.3rem; }
+.opt-mini-val { font-family:'Playfair Display',serif; font-size:1.9rem; color:var(--snow); }
+.opt-mini-unit { font-family:'DM Sans',sans-serif; font-size:0.75rem; color:var(--muted); margin-left:0.2rem; }
+.opt-mini-note { font-size:0.72rem; color:var(--lime); margin-top:0.1rem; }
+
+/* ── APPLICATIONS ─────────────────────────────────────────────── */
+#applications { background:radial-gradient(ellipse at 75% 40%, rgba(176,126,255,0.06) 0%, transparent 50%); flex-direction:column; }
+.app-card {
+  background:var(--card); border:1px solid rgba(200,255,0,0.08);
+  border-radius:4px; padding:1.6rem; cursor:pointer; transition:all 0.3s;
+  position:relative; overflow:hidden;
+}
+.app-card::after {
+  content:''; position:absolute; bottom:0; left:0; right:0;
+  height:2px; background:var(--lime); transform:scaleX(0);
+  transition:transform 0.3s; transform-origin:left;
+}
+.app-card:hover::after { transform:scaleX(1); }
+.app-card:hover { border-color:rgba(200,255,0,0.25); transform:translateY(-4px); }
+.ac-emoji { font-size:1.8rem; margin-bottom:0.7rem; display:block; }
+.ac-name { font-family:'Playfair Display',serif; font-size:1rem; margin-bottom:0.4rem; color:var(--snow); }
+.ac-desc { font-size:0.8rem; color:var(--body); line-height:1.8; }
+.ac-stat { margin-top:0.8rem; font-size:0.72rem; font-weight:600; color:var(--lime); border-top:1px solid rgba(200,255,0,0.1); padding-top:0.6rem; }
+
+/* ── TIMELINE ─────────────────────────────────────────────────── */
+#timeline { flex-direction:column; }
+.tl-track { width:100%; max-width:900px; margin:2rem auto 0; position:relative; }
+.tl-track::before { content:''; position:absolute; left:50%; top:0; bottom:0; width:1px; background:rgba(200,255,0,0.15); transform:translateX(-50%); }
+.tl-item { display:grid; grid-template-columns:1fr 70px 1fr; gap:1rem; align-items:center; margin-bottom:2rem; }
+.tl-card { background:var(--card); border:1px solid rgba(200,255,0,0.1); border-radius:3px; padding:1.1rem; transition:border-color 0.3s; }
+.tl-card:hover { border-color:rgba(200,255,0,0.3); }
+.tl-node { width:12px; height:12px; border-radius:50%; background:var(--lime); margin:0 auto; box-shadow:0 0 14px rgba(200,255,0,0.6); }
+.tl-year { font-size:0.62rem; font-weight:600; color:var(--muted); text-align:center; margin-top:0.3rem; letter-spacing:0.1em; }
+.tl-title { font-size:0.85rem; font-weight:700; color:var(--snow); margin-bottom:0.3rem; }
+.tl-body { font-size:0.78rem; color:var(--body); line-height:1.7; }
+.tl-empty { opacity:0; pointer-events:none; }
+
+/* ── FOOTER ───────────────────────────────────────────────────── */
+footer {
+  background:var(--surf); border-top:1px solid rgba(200,255,0,0.1);
+  padding:3rem; display:flex; justify-content:space-between;
+  align-items:center; flex-wrap:wrap; gap:2rem;
+}
+.foot-brand { font-family:'Playfair Display',serif; font-size:1.35rem; color:var(--lime); }
+.foot-brand span { color:var(--muted); font-style:italic; font-weight:400; font-size:0.85em; }
+.foot-info { font-size:0.78rem; color:var(--muted); line-height:1.8; }
+
+/* ── REVEAL ────────────────────────────────────────────────────── */
+.reveal { opacity:0; transform:translateY(22px); transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1),transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+.reveal.visible { opacity:1; transform:translateY(0); }
+.rd1{transition-delay:0.1s} .rd2{transition-delay:0.2s} .rd3{transition-delay:0.3s} .rd4{transition-delay:0.4s}
+
+@media (max-width:980px) {
+  .sim-layout,.two-col,.three-col,.cmp-grid,.vdw-layout,.opt-layout,.obj-grid { grid-template-columns:1fr; height:auto; }
+  .sim-layout { height:auto; }
+  nav { padding:0.9rem 1.5rem; }
+  section { padding:6rem 1.5rem 4rem; }
+  .nav-links { display:none; }
+  .tl-track::before { left:24px; }
+  .tl-item { grid-template-columns:24px 1fr; }
+  .tl-empty,.tl-item:nth-child(even) .tl-card:first-child { display:none!important; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">Gecko<span>Sim</span></div>
+  <ul class="nav-links">
+    <li><a href="#biology">Biology</a></li>
+    <li><a href="#vdw">Physics</a></li>
+    <li><a href="#simulator">Simulator</a></li>
+    <li><a href="#objects">Object Demo</a></li>
+    <li><a href="#comparison">Compare</a></li>
+    <li><a href="#applications">Applications</a></li>
+  </ul>
+  <div class="nav-live"><div class="nav-dot"></div>Physics Engine Live</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-chips">
+      <span class="chip chip-lime">Van der Waals</span>
+      <span class="chip chip-sky">Setae · Spatulae</span>
+      <span class="chip chip-amber">Real-Time Physics</span>
+      <span class="chip chip-violet">Directional Adhesion</span>
+    </div>
+    <h1 class="hero-title">
+      <span class="ht-main">Gecko</span>
+      <span class="ht-sub">Adhesive Simulator</span>
+    </h1>
+    <p class="hero-lead">
+      Nature's most extraordinary adhesion — 6.5 million nanoscale setae per toe, generating up to 200 N of pure van der Waals force. No glue. No suction. Pure physics.
+    </p>
+    <div class="hero-stats">
+      <div class="hstat"><div class="hstat-val">6.5M</div><div class="hstat-label">Setae per toe</div></div>
+      <div class="hsep"></div>
+      <div class="hstat"><div class="hstat-val">200N</div><div class="hstat-label">Max adhesive force</div></div>
+      <div class="hsep"></div>
+      <div class="hstat"><div class="hstat-val">0.3nm</div><div class="hstat-label">vdW optimum gap</div></div>
+      <div class="hsep"></div>
+      <div class="hstat"><div class="hstat-val">∞</div><div class="hstat-label">Reuse cycles</div></div>
+    </div>
+    <div class="scroll-cue">
+      <span>Explore the science</span>
+      <div class="scroll-line"></div>
+    </div>
+  </div>
+</section>
+
+<!-- BIOLOGY -->
+<section id="biology">
+  <div class="section-tag">01 — Microstructure</div>
+  <div class="two-col">
+    <div>
+      <p class="section-eyebrow reveal">Hierarchical Structure</p>
+      <h2 class="section-title reveal rd1">Nature's Nanoscale Engineering</h2>
+      <p class="section-body reveal rd2">
+        The Tokay gecko (<em>Gekko gecko</em>) achieves wall-climbing through a hierarchical structure that works entirely without glue. Each toe bears <strong style="color:var(--sky)">setae</strong> — microscopic stalks 100µm long — which branch into <strong style="color:var(--lime)">spatulae</strong>, nanoscale paddle-shaped tips about 200nm across.
+      </p>
+      <p class="section-body reveal rd3">
+        This branching architecture brings billions of atoms within 0.3nm of any surface, entering the range where van der Waals forces become significant. The system is completely dry, leaves no residue, and self-cleans with each step.
+      </p>
+      <div class="three-col reveal rd4" style="margin-top:1.5rem; gap:0.8rem;">
+        <div class="readout">
+          <div class="readout-row"><span class="readout-key">Lamellae</span><span class="readout-val" style="color:var(--violet)">~20</span></div>
+          <div class="readout-row"><span class="readout-key">per toe</span><span class="readout-val" style="color:var(--muted);font-size:0.7rem">—</span></div>
+        </div>
+        <div class="readout">
+          <div class="readout-row"><span class="readout-key">Setae</span><span class="readout-val" style="color:var(--sky)">6.5M</span></div>
+          <div class="readout-row"><span class="readout-key">per toe</span><span class="readout-val" style="color:var(--muted);font-size:0.7rem">—</span></div>
+        </div>
+        <div class="readout">
+          <div class="readout-row"><span class="readout-key">Spatulae</span><span class="readout-val">~100</span></div>
+          <div class="readout-row"><span class="readout-key">per seta</span><span class="readout-val" style="color:var(--muted);font-size:0.7rem">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="position:relative;" class="reveal rd2">
+      <canvas id="bio-canvas" width="520" height="420" style="border:1px solid rgba(74,200,255,0.15);border-radius:4px;display:block;"></canvas>
+      <div class="bio-legend">
+        <div class="bl-row"><div class="bl-dot" style="background:var(--sky)"></div>Lamella (toe pad)</div>
+        <div class="bl-row"><div class="bl-dot" style="background:var(--amber)"></div>Setae stalks</div>
+        <div class="bl-row"><div class="bl-dot" style="background:var(--lime)"></div>Spatulae tips</div>
+        <div class="bl-row"><div class="bl-dot" style="background:rgba(200,255,0,0.3)"></div>vdW force field</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="strip"><div class="strip-text">Adhesion through atomic proximity — not chemistry</div></div>
+
+<!-- VAN DER WAALS -->
+<section id="vdw">
+  <div class="section-tag">02 — Physics</div>
+  <div class="vdw-layout">
+    <div>
+      <p class="section-eyebrow reveal">Van der Waals Forces</p>
+      <h2 class="section-title reveal rd1">The Physics of Molecular Attraction</h2>
+      <p class="section-body reveal rd2">
+        Gecko adhesion runs on London dispersion forces — instantaneous dipole interactions between atoms. These forces fall off as r⁻⁶, making the separation distance the critical variable. At 0.3nm, the attraction is maximized. Beyond 1nm, it effectively vanishes.
+      </p>
+      <p class="section-body reveal rd3">
+        The Lennard-Jones potential captures both repulsion (at very close range) and attraction (at optimal spacing). Spatulae geometry is tuned by 200 million years of evolution to maintain this sweet spot across virtually any surface.
+      </p>
+      <div class="formula-box reveal rd4">
+        <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">Lennard-Jones Potential</div>
+        <div class="formula-eq">V(r) = 4ε[(σ/r)¹² − (σ/r)⁶]</div>
+        <div class="formula-note">Repulsive core + attractive well. ε encodes well depth; σ is the zero-crossing distance.</div>
+        <div class="formula-grid">
+          <div class="fgi"><span class="fgi-sym">ε</span><span class="fgi-desc">well depth (energy)</span></div>
+          <div class="fgi"><span class="fgi-sym">σ</span><span class="fgi-desc">zero-crossing distance</span></div>
+          <div class="fgi"><span class="fgi-sym">r</span><span class="fgi-desc">atom separation</span></div>
+          <div class="fgi"><span class="fgi-sym">r⁻⁶</span><span class="fgi-desc">attractive decay rate</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal rd2">
+      <canvas id="vdw-canvas" width="480" height="400" style="display:block;border:1px solid rgba(255,176,32,0.15);border-radius:4px;"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN SIMULATOR -->
+<section id="simulator">
+  <div class="section-tag">03 — Interactive Simulator</div>
+  <div style="width:100%;max-width:1340px;margin:0 auto;">
+    <div class="reveal">
+      <p class="section-eyebrow">Real-Time Physics Engine</p>
+      <h2 class="section-title" style="max-width:600px;">Gecko Adhesion Simulator</h2>
+    </div>
+    <div class="mode-tabs reveal" style="max-width:520px;margin:0.8rem 0 0;">
+      <button class="mode-tab active" id="tab-2d"    onclick="setMode('2d')">2D Cross-Section</button>
+      <button class="mode-tab"        id="tab-force" onclick="setMode('force')">Force Curves</button>
+      <button class="mode-tab"        id="tab-peel"  onclick="setMode('peel')">Peel Mechanics</button>
+    </div>
+  </div>
+
+  <div class="sim-layout">
+    <!-- LEFT — Microstructure controls -->
+    <div class="panel">
+      <div class="panel-title">Microstructure</div>
+
+      <div class="ctrl">
+        <div class="ctrl-label">Setae Density <span class="ctrl-val" id="vd">6,500 /mm²</span></div>
+        <input type="range" id="cd" min="1000" max="12000" value="6500" step="100" oninput="onSlider('density',this.value)">
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label">Setae Angle <span class="ctrl-val" id="va">30°</span></div>
+        <input type="range" id="ca" min="10" max="80" value="30" oninput="onSlider('angle',this.value)">
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label">Spatula Size <span class="ctrl-val" id="vs">200 nm</span></div>
+        <input type="range" id="cs" min="50" max="500" value="200" oninput="onSlider('spat',this.value)">
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label">Stalk Length <span class="ctrl-val" id="vl">100 µm</span></div>
+        <input type="range" id="cl" min="20" max="200" value="100" oninput="onSlider('length',this.value)">
+      </div>
+
+      <div class="panel-title">Environment</div>
+      <div class="ctrl">
+        <div class="ctrl-label" style="margin-bottom:0.4rem;">Surface Type</div>
+        <select class="ctrl-sel" id="csurf" onchange="onSlider('surface',this.value)">
+          <option value="smooth">Smooth Glass</option>
+          <option value="rough">Rough Concrete</option>
+          <option value="hydrophobic">Teflon (PTFE)</option>
+          <option value="hydrophilic">Silica (SiO₂)</option>
+          <option value="elastic">Rubber (PDMS)</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label">Humidity <span class="ctrl-val" id="vh">50%</span></div>
+        <input type="range" id="ch" min="0" max="100" value="50" oninput="onSlider('humidity',this.value)">
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label">Temperature <span class="ctrl-val" id="vt">25°C</span></div>
+        <input type="range" id="ct" min="0" max="60" value="25" oninput="onSlider('temp',this.value)">
+      </div>
+    </div>
+
+    <!-- CENTER — Canvas -->
+    <div class="sim-center">
+      <canvas id="main-canvas"></canvas>
+      <div class="canvas-badge" id="mode-badge">2D Cross-Section</div>
+      <div class="canvas-force cf-strong" id="force-badge">Adhesion: —</div>
+      <div class="param-banner" id="param-banner">—</div>
+    </div>
+
+    <!-- RIGHT — Force & output -->
+    <div class="panel">
+      <div class="panel-title">Simulation Control</div>
+      <div id="state-badge" class="state-badge sb-on">● Attached — Strong Grip</div>
+
+      <div class="ctrl">
+        <div class="ctrl-label">Applied Force <span class="ctrl-val" id="vf">0 mN</span></div>
+        <input type="range" id="cf" min="0" max="300" value="0" oninput="onSlider('force',this.value)">
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label">Peel Angle <span class="ctrl-val" id="vp">0°</span></div>
+        <input type="range" id="cp" min="0" max="180" value="0" oninput="onSlider('peel',this.value)">
+      </div>
+
+      <button class="btn btn-green"  onclick="doAttach()">↓ Attach Toe Pad</button>
+      <button class="btn btn-orange" onclick="doPeel()">↗ Animate Peel</button>
+      <button class="btn btn-red"    onclick="doReset()">⟳ Reset All</button>
+
+      <div class="panel-title">Live Outputs</div>
+      <div class="readout" style="gap:0.4rem;display:flex;flex-direction:column;">
+        <div class="readout-row"><span class="readout-key">Adhesive Force</span>  <span class="readout-val" id="o-force">—</span></div>
+        <div class="readout-row"><span class="readout-key">Contact Area</span>    <span class="readout-val" id="o-area">—</span></div>
+        <div class="readout-row"><span class="readout-key">Efficiency</span>      <span class="readout-val" id="o-eff">—</span></div>
+        <div class="readout-row"><span class="readout-key">Work of Adhesion</span><span class="readout-val" id="o-work">—</span></div>
+        <div class="readout-row"><span class="readout-key">vdW Pressure</span>   <span class="readout-val" id="o-vdw">—</span></div>
+        <div class="readout-row"><span class="readout-key">Max Shear</span>       <span class="readout-val" id="o-shear">—</span></div>
+      </div>
+
+      <div class="panel-title">Performance Meters</div>
+      <div class="meter"><div class="meter-head"><span class="meter-key">Adhesion</span><span class="meter-num" id="mn-a">0%</span></div><div class="meter-track"><div class="meter-fill mf-lime" id="mf-a" style="width:0%"></div></div></div>
+      <div class="meter"><div class="meter-head"><span class="meter-key">Contact Area</span><span class="meter-num" id="mn-c">0%</span></div><div class="meter-track"><div class="meter-fill mf-sky" id="mf-c" style="width:0%"></div></div></div>
+      <div class="meter"><div class="meter-head"><span class="meter-key">Reversibility</span><span class="meter-num" id="mn-r">0%</span></div><div class="meter-track"><div class="meter-fill mf-amber" id="mf-r" style="width:0%"></div></div></div>
+      <div class="meter"><div class="meter-head"><span class="meter-key">Self-Clean</span><span class="meter-num" id="mn-s">0%</span></div><div class="meter-track"><div class="meter-fill mf-violet" id="mf-s" style="width:0%"></div></div></div>
+
+      <div class="graph-wrap">
+        <div class="graph-title">Adhesion Force Over Time</div>
+        <canvas id="graph-canvas" height="70"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="strip"><div class="strip-text">Anisotropic by design — strong in shear, easy to peel</div></div>
+
+<!-- OBJECT DEMO -->
+<section id="objects">
+  <div class="section-tag">04 — Object Comparison</div>
+  <div style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="reveal" style="text-align:center;margin-bottom:0.5rem;">
+      <p class="section-eyebrow">Gecko vs Normal Glue</p>
+      <h2 class="section-title">See the Difference on Real Objects</h2>
+      <p class="section-body" style="max-width:640px;margin:0 auto;">
+        Select an object below to watch a real-time simulation of how gecko dry adhesion compares to conventional chemical glue across different materials and geometries.
+      </p>
+    </div>
+    <div class="obj-grid reveal rd1" id="obj-grid">
+      <!-- Populated by JS -->
+    </div>
+    <div class="obj-demo-area reveal rd2" style="margin-top:1.5rem;">
+      <div class="obj-demo-header">
+        <div class="odh odh-gecko">🦎 Gecko Adhesive — Dry van der Waals</div>
+        <div class="odh odh-glue">🧪 Chemical Glue — Polymer bonding</div>
+      </div>
+      <div class="obj-demo-canvases">
+        <div class="obj-demo-canvas-wrap">
+          <canvas id="demo-gecko-canvas"></canvas>
+          <div style="position:absolute;bottom:0.6rem;left:0.8rem;font-size:0.7rem;font-weight:600;color:var(--lime);background:rgba(7,9,15,0.85);padding:0.2rem 0.6rem;border-radius:2px;">
+            Reversible · No residue · Works dry
+          </div>
+        </div>
+        <div class="obj-demo-canvas-wrap">
+          <canvas id="demo-glue-canvas"></canvas>
+          <div style="position:absolute;bottom:0.6rem;right:0.8rem;font-size:0.7rem;font-weight:600;color:var(--coral);background:rgba(7,9,15,0.85);padding:0.2rem 0.6rem;border-radius:2px;">
+            Permanent · Leaves residue · Chemical
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section id="comparison">
+  <div class="section-tag">05 — Comparison</div>
+  <div style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="reveal" style="text-align:center;margin-bottom:2rem;">
+      <p class="section-eyebrow">Gecko vs Conventional</p>
+      <h2 class="section-title">Dry Adhesion vs. Chemical Glue</h2>
+    </div>
+    <div class="cmp-grid reveal rd1">
+      <div class="cmp-side">
+        <div class="cmp-head cmp-head-gecko">Gecko Adhesive</div>
+        <div class="cmp-row"><span class="cmp-prop">Mechanism</span><span class="cmp-val cv-good">Van der Waals (dry)</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Reversibility</span><span class="cmp-val cv-good">100% — infinite cycles</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Self-cleaning</span><span class="cmp-val cv-good">Yes — locomotion-driven</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Works underwater</span><span class="cmp-val cv-good">Yes (reduced)</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Residue</span><span class="cmp-val cv-good">None</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Temp range</span><span class="cmp-val cv-good">−30°C to +120°C</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Shear strength</span><span class="cmp-val cv-mid">~10 N/cm²</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Directional control</span><span class="cmp-val cv-good">Yes — anisotropic</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Environmental impact</span><span class="cmp-val cv-good">Zero (physical only)</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Degradation</span><span class="cmp-val cv-good">None</span></div>
+      </div>
+      <div class="cmp-div"></div>
+      <div class="cmp-side">
+        <div class="cmp-head cmp-head-glue">Conventional Glue</div>
+        <div class="cmp-row"><span class="cmp-prop">Mechanism</span><span class="cmp-val cv-mid">Chemical bonding</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Reversibility</span><span class="cmp-val cv-bad">None — permanent</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Self-cleaning</span><span class="cmp-val cv-bad">No — fouls over time</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Works underwater</span><span class="cmp-val cv-bad">Rarely</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Residue</span><span class="cmp-val cv-bad">Always</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Temp range</span><span class="cmp-val cv-bad">Limited (&lt;80°C)</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Shear strength</span><span class="cmp-val cv-good">~30 N/cm²</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Directional control</span><span class="cmp-val cv-bad">None — isotropic</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Environmental impact</span><span class="cmp-val cv-bad">Solvents, VOCs</span></div>
+        <div class="cmp-row"><span class="cmp-prop">Degradation</span><span class="cmp-val cv-bad">Yes — weakens with time</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OPTIMIZATION -->
+<section id="optimization">
+  <div class="section-tag">06 — AI Optimization</div>
+  <div class="opt-layout">
+    <div class="reveal">
+      <p class="section-eyebrow">Parameter Search</p>
+      <h2 class="section-title">Optimal Design Prediction</h2>
+      <p class="section-body">Using gradient descent on the adhesion model, we predict the optimal microstructure for any target surface. The parameter space is 5-dimensional: density, angle, size, length, and branching ratio.</p>
+      <p class="section-body">Nature already found the near-global maximum for smooth glass. For rough or elastic substrates, different geometries outperform the biological archetype by up to 50%.</p>
+      <button class="btn btn-green" onclick="runOpt()" style="max-width:240px;margin-top:1rem;">▶ Run Optimization</button>
+      <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--muted);" id="opt-status">Select surface in simulator, then run.</div>
+    </div>
+    <div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;" class="reveal rd1">
+        <div class="opt-mini"><div class="opt-mini-label">Optimal Density</div><div class="opt-mini-val" id="ov-d">—<span class="opt-mini-unit">k/mm²</span></div><div class="opt-mini-note" id="od-d">—</div></div>
+        <div class="opt-mini"><div class="opt-mini-label">Optimal Angle</div><div class="opt-mini-val" id="ov-a">—<span class="opt-mini-unit">°</span></div><div class="opt-mini-note" id="od-a">—</div></div>
+        <div class="opt-mini"><div class="opt-mini-label">Predicted Force</div><div class="opt-mini-val" id="ov-f">—<span class="opt-mini-unit">mN</span></div><div class="opt-mini-note" id="od-f">—</div></div>
+        <div class="opt-mini"><div class="opt-mini-label">Efficiency Gain</div><div class="opt-mini-val" id="ov-g">—<span class="opt-mini-unit">%</span></div><div class="opt-mini-note" id="od-g">—</div></div>
+      </div>
+      <div class="graph-wrap reveal rd2" style="margin-top:0.8rem;">
+        <div class="graph-title">Convergence Curve</div>
+        <canvas id="opt-canvas" height="110"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLICATIONS -->
+<section id="applications">
+  <div class="section-tag">07 — Applications</div>
+  <div style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="reveal" style="text-align:center;margin-bottom:2.5rem;">
+      <p class="section-eyebrow">Real-World Impact</p>
+      <h2 class="section-title">Where Gecko Adhesion Changes Everything</h2>
+    </div>
+    <div class="three-col">
+      <div class="app-card reveal"><span class="ac-emoji">🤖</span><div class="ac-name">Climbing Robots</div><div class="ac-desc">Gecko pads let robots navigate vertical glass and metal in construction, inspection, and rescue — no suction cups, no residue.</div><div class="ac-stat">Stanford: 100 kg payload on vertical glass</div></div>
+      <div class="app-card reveal rd1"><span class="ac-emoji">🏥</span><div class="ac-name">Medical Adhesives</div><div class="ac-desc">Dry biocompatible wound closure and surgical tissue bonding — repositionable, leaves no residue, works in wet environments.</div><div class="ac-stat">3× stronger than surgical tape in wet tissue</div></div>
+      <div class="app-card reveal rd2"><span class="ac-emoji">🚀</span><div class="ac-name">Space Technology</div><div class="ac-desc">Satellite gripping and debris capture in vacuum, where conventional adhesives outgas and fail at extreme temperatures.</div><div class="ac-stat">NASA testing gecko grips for ISS servicing</div></div>
+      <div class="app-card reveal rd1"><span class="ac-emoji">👾</span><div class="ac-name">Microelectronics</div><div class="ac-desc">Transfer printing of microchips and OLED displays using directional dry adhesion — nanoscale precision, zero contamination.</div><div class="ac-stat">100 nm positioning accuracy demonstrated</div></div>
+      <div class="app-card reveal rd2"><span class="ac-emoji">🧤</span><div class="ac-name">Gecko Gloves</div><div class="ac-desc">DARPA Z-Man wearable adhesive pads let a human climb smooth vertical glass surfaces while carrying equipment.</div><div class="ac-stat">DARPA: 75 kg climber, 50 kg load, no assist</div></div>
+      <div class="app-card reveal rd3"><span class="ac-emoji">📱</span><div class="ac-name">Consumer Products</div><div class="ac-desc">Residue-free phone mounts, repositionable display adhesives, and wet-grip enhancement for touchscreens and wearables.</div><div class="ac-stat">10,000+ re-attachment cycles, no degradation</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline">
+  <div class="section-tag">08 — History</div>
+  <div style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="reveal" style="text-align:center;margin-bottom:1rem;">
+      <p class="section-eyebrow">Discovery Timeline</p>
+      <h2 class="section-title">From Aristotle to Nanotechnology</h2>
+    </div>
+    <div class="tl-track">
+      <div class="tl-item reveal"><div class="tl-card"><div class="tl-title">Aristotle's Observation</div><div class="tl-body">First recorded observation of gecko wall-climbing in <em>Historia Animalium</em>. The mechanism would remain unknown for 2,400 years.</div></div><div><div class="tl-node"></div><div class="tl-year">~350 BC</div></div><div class="tl-card tl-empty"></div></div>
+      <div class="tl-item reveal rd1"><div class="tl-card tl-empty"></div><div><div class="tl-node" style="background:var(--sky)"></div><div class="tl-year">1969</div></div><div class="tl-card"><div class="tl-title">SEM Imaging</div><div class="tl-body">First scanning electron microscope images reveal the hierarchical setae structure, showing fine branching tips for the first time.</div></div></div>
+      <div class="tl-item reveal"><div class="tl-card"><div class="tl-title">van der Waals Confirmed</div><div class="tl-body">Autumn et al. (Nature, 2000) definitively prove van der Waals forces — not suction or capillary action — drive gecko adhesion.</div></div><div><div class="tl-node" style="background:var(--amber)"></div><div class="tl-year">2000</div></div><div class="tl-card tl-empty"></div></div>
+      <div class="tl-item reveal rd1"><div class="tl-card tl-empty"></div><div><div class="tl-node" style="background:var(--violet)"></div><div class="tl-year">2003</div></div><div class="tl-card"><div class="tl-title">First Synthetic Gecko Tape</div><div class="tl-body">Geim et al. create first gecko-tape using carbon nanotube arrays, achieving 3 N/cm² adhesion — first proof of concept.</div></div></div>
+      <div class="tl-item reveal"><div class="tl-card"><div class="tl-title">DARPA Z-Man Program</div><div class="tl-body">Electrospun polyurethane microstructure enables a 75 kg human to climb smooth vertical glass while carrying a 50 kg load.</div></div><div><div class="tl-node" style="background:var(--coral)"></div><div class="tl-year">2014</div></div><div class="tl-card tl-empty"></div></div>
+      <div class="tl-item reveal rd1"><div class="tl-card tl-empty"></div><div><div class="tl-node" style="background:var(--emerald)"></div><div class="tl-year">2025+</div></div><div class="tl-card"><div class="tl-title">Medical & Space Applications</div><div class="tl-body">Biocompatible gecko adhesives enter clinical trials. ESA tests gecko grippers for orbital debris capture.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <div class="foot-brand">GeckoSim <span>— Adhesive Physics</span></div>
+    <div class="foot-info" style="margin-top:0.4rem;">
+      Van der Waals force model · Lennard-Jones potential · Hierarchical setae physics<br>
+      Visualization: Canvas 2D · Engine: Custom JS physics
+    </div>
+  </div>
+  <div class="foot-info" style="text-align:right;">
+    Physics based on Autumn et al. (2000), Arzt et al. (2003), Geim et al. (2003)<br>
+    <span style="color:var(--lime);">Educational Simulator · 2025</span>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   CONSTANTS & STATE
+   ============================================================ */
+const SURFACES = {
+  smooth:      { roughness:0.02, Hamaker:6.5e-20, name:'Smooth Glass',  color:'#4ac8ff', wettability:0.3 },
+  rough:       { roughness:0.38, Hamaker:4.0e-20, name:'Rough Concrete', color:'#ffb020', wettability:0.5 },
+  hydrophobic: { roughness:0.05, Hamaker:2.5e-20, name:'Teflon (PTFE)', color:'#b07eff', wettability:0.05 },
+  hydrophilic: { roughness:0.08, Hamaker:8.0e-20, name:'Silica (SiO₂)', color:'#00dda0', wettability:0.9 },
+  elastic:     { roughness:0.15, Hamaker:5.0e-20, name:'Rubber (PDMS)', color:'#ff5e5e', wettability:0.6 }
+};
+
+const OBJECTS = [
+  { id:'glass',   name:'Glass Wall',    sub:'Smooth, hydrophilic surface — optimal for gecko',
+    geckoGrip:95, glueGrip:88, geckoNote:'Near-perfect vdW contact', glueNote:'Bonds well, hard to remove',
+    draw: drawGlassWall },
+  { id:'tile',    name:'Ceramic Tile',  sub:'Slightly rough, porous surface',
+    geckoGrip:80, glueGrip:75, geckoNote:'Minor roughness penalty', glueNote:'Bonds OK, residue on removal',
+    draw: drawCeramicTile },
+  { id:'bark',    name:'Tree Bark',     sub:'Very rough, irregular organic surface',
+    geckoGrip:45, glueGrip:60, geckoNote:'High roughness limits contact', glueNote:'Chemical penetration helps',
+    draw: drawTreeBark },
+  { id:'teflon',  name:'Teflon Sheet',  sub:'Super-hydrophobic, low-energy surface',
+    geckoGrip:55, glueGrip:22, geckoNote:'Low Hamaker constant, OK grip', glueNote:'Extremely hard to bond chemically',
+    draw: drawTeflon }
+];
+
+let S = {
+  mode:'2d', attached:true, peeling:false,
+  density:6500, angle:30, spat:200, length:100,
+  surface:'smooth', humidity:50, temp:25,
+  force:0, peel:0,
+  attachAnim:1, simTime:0,
+  forceHistory:[], currentForce:0,
+  selectedObj:0, objTime:0,
+  bannerTimer:null
+};
+
+/* ============================================================
+   SLIDER HANDLER — immediate feedback
+   ============================================================ */
+const LABELS = {
+  density: v => `${(+v).toLocaleString()} /mm²`,
+  angle:   v => `${v}°`,
+  spat:    v => `${v} nm`,
+  length:  v => `${v} µm`,
+  humidity:v => `${v}%`,
+  temp:    v => `${v}°C`,
+  force:   v => `${v} mN`,
+  peel:    v => `${v}°`,
+  surface: v => SURFACES[v]?.name || v
+};
+const VAL_IDS = {
+  density:'vd', angle:'va', spat:'vs', length:'vl',
+  humidity:'vh', temp:'vt', force:'vf', peel:'vp'
+};
+const EFFECTS = {
+  density: v => `Higher density → more spatulae → stronger vdW bond`,
+  angle:   v => +v < 25 ? `Shallow angle → maximum shear strength` : +v > 55 ? `Steep angle → reduced shear, easier detach` : `Optimal angle range for mixed loads`,
+  spat:    v => +v < 100 ? `Tiny spatulae → less contact area per tip` : +v > 350 ? `Large spatulae → more area but flexibility loss` : `Good spatula size for broad surface contact`,
+  length:  v => +v < 50 ? `Short stalks → stiff, less adaptable to roughness` : +v > 150 ? `Long stalks → very flexible, great on rough surfaces` : `Balanced length — adapts to moderate roughness`,
+  humidity:v => +v < 25 ? `Low humidity — pure vdW adhesion` : +v > 65 ? `High humidity — capillary forces augment vdW (+${Math.round((+v-50)*0.7)}%)` : `Neutral humidity — minimal capillary effect`,
+  temp:    v => +v > 45 ? `High temp — thermal vibration reduces contact time` : +v < 10 ? `Low temp — stiffer setae, slightly reduced conformability` : `Normal operating temperature`,
+  force:   v => +v > 200 ? `Force exceeds threshold — approaching detachment!` : +v > 100 ? `Significant load — setae deforming under stress` : `Low applied force — gecko comfortable`,
+  peel:    v => +v === 0 ? `No peel — maximum shear grip active` : +v > 90 ? `High peel angle — setae rapidly releasing` : `Partial peel — directional adhesion working`,
+  surface: v => `Surface changed to ${SURFACES[v]?.name}. Hamaker: ${(SURFACES[v]?.Hamaker * 1e20).toFixed(1)}×10⁻²⁰ J`
+};
+
+function onSlider(param, val) {
+  S[param] = param === 'surface' ? val : +val;
+
+  // Update display value
+  const elId = VAL_IDS[param];
+  if (elId) {
+    const el = document.getElementById(elId);
+    if (el) {
+      el.textContent = LABELS[param](val);
+      el.classList.add('flash');
+      setTimeout(() => el.classList.remove('flash'), 300);
+    }
+  }
+
+  // Show effect banner
+  const msg = EFFECTS[param]?.(val);
+  if (msg) showBanner(msg);
+}
+
+function showBanner(msg) {
+  const b = document.getElementById('param-banner');
+  if (!b) return;
+  b.textContent = msg;
+  b.classList.add('show');
+  clearTimeout(S.bannerTimer);
+  S.bannerTimer = setTimeout(() => b.classList.remove('show'), 2800);
+}
+
+/* ============================================================
+   PHYSICS MODEL
+   ============================================================ */
+function computeForce() {
+  const sp = SURFACES[S.surface];
+  const A = sp.Hamaker;
+  const R = (S.spat / 2) * 1e-9;
+  const D = 0.3e-9;
+  const n = S.density * 1e6; // /m²
+  const numSpat = 100;
+  const area = 1e-4; // 1 cm²
+
+  const angleEff = Math.cos(S.angle * Math.PI / 180);
+  const humidFact = 1 + (S.humidity / 100) * 0.45;
+  const tempFact = 1 - Math.max(0, (S.temp - 30)) * 0.008 + Math.max(0, (10 - S.temp)) * 0.004;
+  const roughFact = Math.pow(1 - sp.roughness, 1.5);
+  const lengthFact = 0.6 + (S.length / 200) * 0.8; // longer = more conformable = better contact
+  const spatFact = 0.7 + (S.spat / 500) * 0.6;
+
+  const F_spat = (A * R) / (6 * D * D);
+  let F_total = n * area * numSpat * F_spat * angleEff * humidFact * tempFact * roughFact * lengthFact * spatFact;
+  F_total = Math.max(0, F_total) * 1000; // N → mN
+  F_total = Math.min(F_total * 0.07, 340); // normalize
+
+  // Peel reduction
+  const peelA = S.peel * Math.PI / 180;
+  const peelFact = Math.pow(Math.cos(peelA / 2), 2);
+  F_total *= peelFact;
+
+  if (!S.attached) F_total = 0;
+  return F_total;
+}
+
+/* ============================================================
+   HERO CANVAS
+   ============================================================ */
+(function() {
+  const c = document.getElementById('hero-canvas');
+  const ctx = c.getContext('2d');
+  let W,H,pts=[];
+  function resize() { W=c.width=c.offsetWidth; H=c.height=c.offsetHeight; build(); }
+  function build() {
+    pts=[];
+    const n = Math.floor(W*H/5500);
+    for (let i=0;i<n;i++) pts.push({
+      x:Math.random()*W, y:Math.random()*H,
+      a:(Math.PI/6)+(Math.random()-0.5)*0.5,
+      len:12+Math.random()*32, sp:0.25+Math.random()*0.4,
+      ph:Math.random()*Math.PI*2, br:Math.random(),
+      ch:Math.floor(Math.random()*4)+2
+    });
+  }
+  let t=0;
+  function draw() {
+    ctx.clearRect(0,0,W,H); t+=0.013;
+    pts.forEach(p=>{
+      const sw=Math.sin(t*p.sp+p.ph)*0.14;
+      const a=p.a+sw, ex=p.x+Math.cos(a)*p.len, ey=p.y-Math.sin(a)*p.len;
+      const al=0.07+p.br*0.15;
+      ctx.strokeStyle=`rgba(200,255,0,${al})`; ctx.lineWidth=0.7;
+      ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(ex,ey); ctx.stroke();
+      for(let s=0;s<p.ch;s++) {
+        const sp=(s/(p.ch-1)-0.5)*0.55, ta=a+sp, tl=5+Math.random()*5;
+        const tx=ex+Math.cos(ta)*tl, ty=ey-Math.sin(ta)*tl;
+        ctx.strokeStyle=`rgba(200,255,0,${al*0.5})`; ctx.lineWidth=0.4;
+        ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(tx,ty); ctx.stroke();
+        if(p.br>0.72) { ctx.fillStyle=`rgba(200,255,0,${al*1.4})`; ctx.beginPath(); ctx.arc(tx,ty,1.2,0,Math.PI*2); ctx.fill(); }
+      }
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize); resize(); draw();
+})();
+
+/* ============================================================
+   BIOLOGY CANVAS
+   ============================================================ */
+(function() {
+  const c = document.getElementById('bio-canvas');
+  if(!c) return;
+  const ctx=c.getContext('2d'), W=c.width, H=c.height;
+  let t=0;
+  function col(cx,baseY,angle,phase) {
+    const len=85, sw=Math.sin(t*0.8+phase)*0.12, a=angle+sw;
+    const ex=cx+Math.cos(a)*len, ey=baseY-Math.sin(a)*len;
+    ctx.strokeStyle='rgba(255,176,32,0.85)'; ctx.lineWidth=2.5; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(cx,baseY); ctx.lineTo(ex,ey); ctx.stroke();
+    const ns=6;
+    for(let s=0;s<ns;s++) {
+      const sp=(s/(ns-1)-0.5)*1.0, sa=a+sp*0.5+Math.sin(t*1.2+phase+s)*0.05;
+      const sl=16+Math.sin(t*0.6+s)*3;
+      const stx=ex+Math.cos(sa)*sl, sty=ey-Math.sin(sa)*sl;
+      ctx.strokeStyle='rgba(200,255,0,0.8)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(stx,sty); ctx.stroke();
+      ctx.fillStyle='rgba(200,255,0,0.55)';
+      ctx.beginPath(); ctx.ellipse(stx,sty,4,2.2,sa,0,Math.PI*2); ctx.fill();
+      if(sty>H-80) {
+        const gA=Math.max(0,0.55-(H-75-sty)*0.05);
+        ctx.fillStyle=`rgba(200,255,0,${gA*0.45})`;
+        ctx.beginPath(); ctx.ellipse(stx,sty+2,6,2,0,0,Math.PI*2); ctx.fill();
+      }
+    }
+  }
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    const bg=ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#06080e'); bg.addColorStop(1,'#080f1e');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(74,200,255,0.1)'; ctx.fillRect(0,H-55,W,55);
+    ctx.strokeStyle='rgba(74,200,255,0.5)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,H-55); ctx.lineTo(W,H-55); ctx.stroke();
+    ctx.fillStyle='rgba(74,200,255,0.7)'; ctx.font='bold 11px DM Sans';
+    ctx.fillText('Surface substrate',12,H-30);
+    ctx.fillStyle='rgba(74,200,255,0.08)'; ctx.fillRect(20,H-200,W-40,48);
+    ctx.strokeStyle='rgba(74,200,255,0.22)'; ctx.lineWidth=1; ctx.strokeRect(20,H-200,W-40,48);
+    ctx.fillStyle='rgba(74,200,255,0.6)'; ctx.font='11px DM Sans'; ctx.fillText('Lamella (toe pad)',28,H-180);
+    for(let i=0;i<8;i++) col(40+(i/7)*(W-80),H-155,Math.PI/2-0.4-(i/8)*0.18,i*0.8);
+    ctx.font='bold 11px DM Sans'; ctx.fillStyle='rgba(255,176,32,0.85)'; ctx.fillText('Setae (100 µm)',12,46);
+    ctx.fillStyle='rgba(200,255,0,0.85)'; ctx.fillText('Spatulae tips (~200 nm)',12,68);
+    ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(W-100,H-15); ctx.lineTo(W-20,H-15); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.45)'; ctx.font='10px JetBrains Mono'; ctx.fillText('~200 µm',W-98,H-5);
+    t+=0.016; requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ============================================================
+   VdW CANVAS — Lennard-Jones
+   ============================================================ */
+(function() {
+  const c=document.getElementById('vdw-canvas'); if(!c) return;
+  const ctx=c.getContext('2d'), W=480, H=400; c.width=W; c.height=H;
+  let t=0;
+  function LJ(r) { if(r<0.85) return 50; const s6=Math.pow(1/r,6); return 4*(s6*s6-s6); }
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#06080e'; ctx.fillRect(0,0,W,H);
+    const rMin=0.7,rMax=4,yMin=-1.6,yMax=4.2;
+    const toX=r=>50+((r-rMin)/(rMax-rMin))*(W-70);
+    const toY=v=>H-55-((Math.min(yMax,Math.max(yMin,v))-yMin)/(yMax-yMin))*(H-75);
+    // Grid
+    ctx.strokeStyle='rgba(200,255,0,0.05)'; ctx.lineWidth=1;
+    for(let i=0;i<=8;i++) { ctx.beginPath(); ctx.moveTo(50+i*(W-70)/8,20); ctx.lineTo(50+i*(W-70)/8,H-55); ctx.stroke(); }
+    for(let i=0;i<=6;i++) { ctx.beginPath(); ctx.moveTo(50,20+i*(H-75)/6); ctx.lineTo(W-20,20+i*(H-75)/6); ctx.stroke(); }
+    // Zero line
+    ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(50,toY(0)); ctx.lineTo(W-20,toY(0)); ctx.stroke();
+    // Fill repulsive
+    ctx.beginPath();
+    for(let r=rMin;r<=1.12;r+=0.01) { const v=LJ(r),x=toX(r),y=toY(v); r===rMin?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.lineTo(toX(1.12),toY(0)); ctx.lineTo(toX(rMin),toY(0)); ctx.closePath();
+    ctx.fillStyle='rgba(255,94,94,0.09)'; ctx.fill();
+    // Fill attractive
+    ctx.beginPath();
+    for(let r=1.12;r<=rMax;r+=0.01) { const v=LJ(r),x=toX(r),y=toY(v); r===1.12?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.lineTo(toX(rMax),toY(0)); ctx.lineTo(toX(1.12),toY(0)); ctx.closePath();
+    ctx.fillStyle='rgba(200,255,0,0.06)'; ctx.fill();
+    // Curve
+    const gr=ctx.createLinearGradient(toX(rMin),0,toX(rMax),0);
+    gr.addColorStop(0,'#ff5e5e'); gr.addColorStop(0.25,'#ffb020'); gr.addColorStop(0.5,'#c8ff00'); gr.addColorStop(1,'#4ac8ff');
+    ctx.strokeStyle=gr; ctx.lineWidth=2.5;
+    ctx.beginPath(); let first=true;
+    for(let r=rMin;r<=rMax;r+=0.005) { const x=toX(r),y=toY(LJ(r)); first?(ctx.moveTo(x,y),first=false):ctx.lineTo(x,y); }
+    ctx.stroke();
+    // Probe
+    const probe=1.12+Math.sin(t*1.5)*0.28, px=toX(probe), py=toY(LJ(probe));
+    ctx.strokeStyle='rgba(200,255,0,0.4)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px,toY(0)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#c8ff00'; ctx.shadowColor='rgba(200,255,0,0.8)'; ctx.shadowBlur=12;
+    ctx.beginPath(); ctx.arc(px,py,5.5,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+    // Labels
+    ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.font='bold 11px DM Sans';
+    ctx.fillText('Separation r →',W/2-40,H-10);
+    ctx.save(); ctx.translate(14,H/2+20); ctx.rotate(-Math.PI/2);
+    ctx.fillText('Potential V(r)',0,0); ctx.restore();
+    ctx.fillStyle='rgba(255,94,94,0.75)'; ctx.font='bold 11px DM Sans'; ctx.fillText('Repulsive',toX(rMin)+6,35);
+    ctx.fillStyle='rgba(200,255,0,0.7)'; ctx.fillText('Adhesion Zone',toX(1.6),toY(-0.55));
+    ctx.fillStyle='rgba(74,200,255,0.55)'; ctx.fillText('Free',toX(3.1),toY(0.18));
+    ctx.fillStyle='rgba(200,255,0,0.6)'; ctx.font='11px JetBrains Mono'; ctx.fillText('σ',toX(1)-6,H-38);
+    ctx.fillStyle='rgba(200,255,0,0.6)'; ctx.fillText('0.3 nm',px+8,toY(0)-6);
+    t+=0.016; requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ============================================================
+   MAIN SIMULATOR
+   ============================================================ */
+let MC, mCtx, mW, mH, GC, gCtx, OC, oCtx;
+
+function initSim() {
+  MC = document.getElementById('main-canvas');
+  mCtx = MC.getContext('2d');
+  GC = document.getElementById('graph-canvas');
+  gCtx = GC ? GC.getContext('2d') : null;
+  OC = document.getElementById('opt-canvas');
+  oCtx = OC ? OC.getContext('2d') : null;
+
+  function resize() {
+    const box = MC.parentElement;
+    mW = MC.width = box.clientWidth;
+    mH = MC.height = box.clientHeight;
+    if(GC) GC.width = GC.parentElement.clientWidth - 32;
+    if(OC) OC.width = OC.parentElement.clientWidth - 32;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  loop();
+}
+
+function loop() {
+  S.simTime += 0.018;
+
+  // Animate attachment
+  if (S.attached && S.attachAnim < 1) S.attachAnim = Math.min(1, S.attachAnim + 0.04);
+  if (!S.attached && S.attachAnim > 0) S.attachAnim = Math.max(0, S.attachAnim - 0.03);
+
+  const F = computeForce();
+  S.currentForce = F;
+  S.forceHistory.push(F);
+  if (S.forceHistory.length > 120) S.forceHistory.shift();
+
+  if      (S.mode === '2d')    draw2D(F);
+  else if (S.mode === 'force') drawForce(F);
+  else if (S.mode === 'peel')  drawPeel(F);
+
+  drawGraph();
+  updateOutputs(F);
+  requestAnimationFrame(loop);
+}
+
+/* -- 2D Main Sim -------------------------------------------- */
+function draw2D(F) {
+  const ctx = mCtx, W = mW, H = mH;
+  if(!W||!H) return;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#05070d'; ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='rgba(200,255,0,0.035)'; ctx.lineWidth=1;
+  for(let i=0;i<=14;i++) { ctx.beginPath(); ctx.moveTo(i*W/14,0); ctx.lineTo(i*W/14,H); ctx.stroke(); }
+  for(let i=0;i<=10;i++) { ctx.beginPath(); ctx.moveTo(0,i*H/10); ctx.lineTo(W,i*H/10); ctx.stroke(); }
+
+  const sp = SURFACES[S.surface];
+  const surfY = H - 90;
+
+  // === Surface ===
+  ctx.fillStyle='rgba(12,16,28,0.92)'; ctx.fillRect(0,surfY+8,W,H-surfY);
+  // Surface profile
+  ctx.strokeStyle = sp.color; ctx.lineWidth=1.8;
+  ctx.beginPath();
+  for(let x=0;x<=W;x+=2) {
+    const n = Math.sin(x*0.07)*sp.roughness*22 + Math.sin(x*0.23+1)*sp.roughness*10 + Math.sin(x*0.05-2)*sp.roughness*14;
+    x===0 ? ctx.moveTo(x,surfY+n) : ctx.lineTo(x,surfY+n);
+  }
+  ctx.stroke();
+  // Surface label
+  ctx.fillStyle=sp.color; ctx.font='bold 12px DM Sans';
+  ctx.fillText(sp.name, 14, surfY+28);
+  ctx.fillStyle=sp.color+'99'; ctx.font='10px JetBrains Mono';
+  ctx.fillText(`Hamaker: ${(sp.Hamaker*1e20).toFixed(1)}×10⁻²⁰ J`, 14, surfY+46);
+  ctx.fillText(`Roughness: ${(sp.roughness*100).toFixed(0)}%`, 14, surfY+62);
+
+  // === vdW glow at interface ===
+  if(S.attached && S.attachAnim > 0.4) {
+    const alpha = (S.attachAnim - 0.4) / 0.6;
+    const g = ctx.createLinearGradient(0, surfY-18, 0, surfY+6);
+    g.addColorStop(0,`rgba(200,255,0,${0.3*alpha})`);
+    g.addColorStop(1,'transparent');
+    ctx.fillStyle=g; ctx.fillRect(0,surfY-18,W,18);
+    // Zigzag vdW field lines
+    if(alpha > 0.6) {
+      ctx.strokeStyle=`rgba(200,255,0,${0.18*(alpha-0.6)/0.4})`;
+      ctx.lineWidth=0.6;
+      for(let x=20;x<W-20;x+=14) {
+        const jit = Math.sin(S.simTime*3+x*0.3)*2;
+        ctx.beginPath(); ctx.moveTo(x+jit,surfY-12); ctx.lineTo(x+jit,surfY); ctx.stroke();
+      }
+    }
+  }
+
+  // === Toe geometry ===
+  // toeY: where the bottom of the lamella sits
+  const baseAttached = surfY - 38 - S.length * 1.1;
+  const baseDetached = surfY - 160 - S.length;
+  const toeY = S.attached
+    ? baseAttached * S.attachAnim + baseDetached * (1-S.attachAnim)
+    : baseDetached * (1-S.attachAnim) + baseAttached * S.attachAnim;
+
+  const toeW = W * 0.72;
+  const toeX = (W - toeW) / 2;
+
+  // Lamella box
+  ctx.fillStyle='rgba(74,200,255,0.1)'; ctx.strokeStyle='rgba(74,200,255,0.4)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.roundRect(toeX, toeY, toeW, 26, 3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(74,200,255,0.8)'; ctx.font='bold 11px DM Sans'; ctx.fillText('Lamella', toeX+10, toeY+17);
+
+  // Gecko body hint above lamella
+  ctx.fillStyle='rgba(74,200,255,0.06)'; ctx.strokeStyle='rgba(74,200,255,0.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.roundRect(toeX+toeW*0.15, toeY-40, toeW*0.7, 40, 4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(74,200,255,0.35)'; ctx.font='10px DM Sans'; ctx.fillText('Gecko Toe', toeX+toeW*0.15+8, toeY-22);
+
+  // === Setae ===
+  const cols = 24;
+  const spreadW = toeW * 0.88;
+  const baseY = toeY + 26;
+  const angleRad = (S.angle * Math.PI / 180);
+  const numSpat = Math.max(2, Math.floor(S.density / 1800));
+  const spatLen = (S.spat / 200) * 16;
+  // stalk length in pixels: directly drives visual stalk length
+  const stalkPx = (S.length / 100) * 70 * S.attachAnim + (S.length / 100) * 38 * (1-S.attachAnim);
+
+  for(let i=0;i<cols;i++) {
+    const t_ = i/(cols-1);
+    const bx = toeX + toeW*0.06 + t_*spreadW;
+    const sway = Math.sin(S.simTime*0.9+i*0.5)*0.1;
+    const a = angleRad + sway;
+
+    // The stalk endpoint — length directly from S.length slider
+    const ex = bx + Math.cos(a) * stalkPx * 0.6;
+    const ey = baseY + Math.sin(a) * stalkPx;
+
+    // Seta stalk
+    const stalkAlpha = 0.6 + S.density/12000*0.4;
+    ctx.strokeStyle=`rgba(255,176,32,${stalkAlpha})`; ctx.lineWidth=1.6;
+    ctx.beginPath(); ctx.moveTo(bx,baseY); ctx.lineTo(ex,ey); ctx.stroke();
+
+    // Spatulae
+    for(let s=0;s<numSpat;s++) {
+      const sp2 = (s/(Math.max(1,numSpat-1))-0.5)*0.9;
+      const sa = a + sp2;
+      const stx = ex + Math.cos(sa)*spatLen;
+      const sty = ey + Math.sin(sa)*spatLen*0.5;
+
+      ctx.strokeStyle='rgba(200,255,0,0.72)'; ctx.lineWidth=0.85;
+      ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(stx,sty); ctx.stroke();
+
+      const nearSurf = sty > surfY - 18 && S.attached;
+      ctx.fillStyle = nearSurf ? 'rgba(200,255,0,1)' : 'rgba(200,255,0,0.45)';
+      if(nearSurf) { ctx.shadowColor='rgba(200,255,0,0.7)'; ctx.shadowBlur=5; }
+      ctx.beginPath(); ctx.ellipse(stx,sty,3.8,1.8,sa,0,Math.PI*2); ctx.fill();
+      ctx.shadowBlur=0;
+    }
+  }
+
+  // === Force arrow ===
+  if(S.peel > 5 && S.force > 0) {
+    const pa = (S.peel * Math.PI / 180);
+    const scale = S.force * 0.55;
+    const ax = W/2, ay = toeY-12;
+    const tx = ax + Math.cos(pa-Math.PI/2)*scale, ty = ay - Math.sin(pa)*scale;
+    arrow(ctx,ax,ay,tx,ty,'#ffb020',3);
+    ctx.fillStyle='#ffb020'; ctx.font='bold 11px DM Sans';
+    ctx.fillText(`${S.force} mN @ ${S.peel}°`, tx+10, ty-4);
+  }
+
+  // === Labels at top ===
+  const stateColor = S.attached ? '#c8ff00' : '#ff5e5e';
+  ctx.fillStyle=stateColor+'cc'; ctx.font='bold 12px DM Sans';
+  ctx.fillText(S.attached ? '● ATTACHED' : '○ DETACHED', W-115, 22);
+
+  // Humidity fog
+  if(S.humidity>60) {
+    const fogA = (S.humidity-60)/220;
+    ctx.fillStyle=`rgba(74,200,255,${fogA})`;
+    ctx.fillRect(0,0,W,surfY);
+    ctx.fillStyle='rgba(74,200,255,0.8)'; ctx.font='bold 11px DM Sans';
+    ctx.fillText(`💧 Humidity ${S.humidity}% — capillary augmentation active`, 12, H-98);
+  }
+
+  // Stalk length annotation
+  if(cols > 0) {
+    const midBx = toeX + toeW*0.06 + 0.5*spreadW;
+    const midEy = baseY + Math.sin(angleRad)*stalkPx;
+    ctx.fillStyle='rgba(255,176,32,0.7)'; ctx.font='10px JetBrains Mono';
+    ctx.fillText(`stalk: ${S.length}µm`, midBx + stalkPx*0.7, (baseY + midEy)/2);
+  }
+}
+
+/* -- Force Curves ------------------------------------------- */
+function drawForce(F) {
+  const ctx=mCtx,W=mW,H=mH; if(!W||!H) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#05070d'; ctx.fillRect(0,0,W,H);
+  const pad={l:65,r:25,t:45,b:60};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+  // Grid
+  ctx.strokeStyle='rgba(200,255,0,0.05)'; ctx.lineWidth=1;
+  for(let i=0;i<=10;i++) { ctx.beginPath(); ctx.moveTo(pad.l+i*cW/10,pad.t); ctx.lineTo(pad.l+i*cW/10,pad.t+cH); ctx.stroke(); }
+  for(let i=0;i<=8;i++) { ctx.beginPath(); ctx.moveTo(pad.l,pad.t+i*cH/8); ctx.lineTo(pad.l+cW,pad.t+i*cH/8); ctx.stroke(); }
+  // Axes
+  ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+cH); ctx.lineTo(pad.l+cW,pad.t+cH); ctx.stroke();
+  // Labels
+  ctx.fillStyle='rgba(200,215,255,0.65)'; ctx.font='bold 11px DM Sans';
+  ctx.fillText('Separation (nm) →',pad.l+cW/2-60,H-10);
+  ctx.save(); ctx.translate(16,pad.t+cH/2+35); ctx.rotate(-Math.PI/2); ctx.fillText('Force (nN)',0,0); ctx.restore();
+
+  const sp=SURFACES[S.surface], A=sp.Hamaker;
+  const curves=[
+    {label:`Gecko (density:${S.density}/mm²)`,  color:'#c8ff00', ci:0},
+    {label:'Chemical Glue (reference)', color:'#ff5e5e', ci:1},
+    {label:`Peel @ ${S.peel}°`,          color:'#4ac8ff', ci:2}
+  ];
+  curves.forEach(({label,color,ci})=>{
+    ctx.strokeStyle=color; ctx.lineWidth=2.2;
+    ctx.beginPath(); let first=true;
+    for(let xi=0;xi<=200;xi++) {
+      const r_nm=0.1+xi*0.15, r=r_nm*1e-9;
+      let Fv;
+      if(ci===0) {
+        const R=(S.spat/2)*1e-9, lenF=0.6+(S.length/200)*0.8;
+        Fv = Math.min(180,(A*R)/(6*r*r)*(S.density/5000)*(A/5e-20)*lenF*1e9);
+      } else if(ci===1) {
+        Fv = 130*Math.exp(-r_nm*2.5)*0.45;
+      } else {
+        const pa=S.peel*Math.PI/180;
+        Fv = 65*Math.exp(-r_nm*3)*Math.pow(Math.cos(pa/2),2)*(S.density/6000);
+      }
+      const x=pad.l+(r_nm/30)*cW, y=pad.t+cH-(Fv/200)*cH;
+      first?(ctx.moveTo(x,Math.max(pad.t,y)),first=false):ctx.lineTo(x,Math.max(pad.t,y));
+    }
+    ctx.stroke();
+    // Legend
+    ctx.fillStyle=color; ctx.beginPath(); ctx.arc(pad.l+12,pad.t+18+ci*22,5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(230,235,255,0.85)'; ctx.font='bold 11px DM Sans'; ctx.fillText(label,pad.l+24,pad.t+22+ci*22);
+  });
+  // Optimum shading
+  ctx.fillStyle='rgba(200,255,0,0.07)'; ctx.fillRect(pad.l+(0.2/30)*cW,pad.t,(0.5/30)*cW,cH);
+  ctx.fillStyle='rgba(200,255,0,0.6)'; ctx.font='10px JetBrains Mono'; ctx.fillText('vdW\npeak',pad.l+(0.2/30)*cW+2,pad.t+14);
+  // X axis ticks
+  ctx.fillStyle='rgba(200,215,255,0.45)'; ctx.font='10px JetBrains Mono';
+  for(let i=0;i<=6;i++) { const r=i*5; ctx.fillText(r+'nm',pad.l+(r/30)*cW-10,pad.t+cH+18); }
+}
+
+/* -- Peel Mechanics ----------------------------------------- */
+function drawPeel(F) {
+  const ctx=mCtx,W=mW,H=mH; if(!W||!H) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#05070d'; ctx.fillRect(0,0,W,H);
+
+  const peelA = S.peel * Math.PI/180;
+  const cx=W*0.35, cy=H*0.55, filmW=W*0.55, filmH=18;
+
+  // Surface
+  ctx.fillStyle='rgba(12,16,28,0.9)'; ctx.fillRect(0,cy+filmH/2,W,H-cy-filmH/2);
+  ctx.strokeStyle=SURFACES[S.surface].color; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(0,cy+filmH/2); ctx.lineTo(W,cy+filmH/2); ctx.stroke();
+  ctx.fillStyle=SURFACES[S.surface].color+'88'; ctx.font='bold 11px DM Sans';
+  ctx.fillText(SURFACES[S.surface].name,12,cy+filmH/2+22);
+
+  // Attached part (setae film on surface)
+  const attachLen = filmW * (1 - (S.peel/180)*0.7);
+  ctx.fillStyle='rgba(74,200,255,0.18)'; ctx.strokeStyle='rgba(74,200,255,0.6)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.rect(cx, cy-filmH/2, attachLen, filmH); ctx.fill(); ctx.stroke();
+
+  // Draw setae on attached section
+  const nSet = Math.floor(attachLen / 12);
+  for(let i=0;i<nSet;i++) {
+    const bx = cx + i*12 + 6, by = cy + filmH/2;
+    ctx.strokeStyle='rgba(255,176,32,0.8)'; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(bx+2,by+12); ctx.stroke();
+    // Bright tip = attached
+    ctx.fillStyle='rgba(200,255,0,0.9)';
+    ctx.beginPath(); ctx.ellipse(bx+2,by+14,3,1.5,0.3,0,Math.PI*2); ctx.fill();
+  }
+
+  // vdW contact glow
+  ctx.fillStyle='rgba(200,255,0,0.12)';
+  ctx.fillRect(cx,cy+filmH/2-3,attachLen,3);
+
+  // Peel front
+  const peelX = cx + attachLen;
+  ctx.strokeStyle='#ffb020'; ctx.lineWidth=2;
+  ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(peelX,cy); ctx.lineTo(peelX,cy+filmH/2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ffb020'; ctx.font='bold 11px DM Sans'; ctx.fillText('Peel front',peelX+6,cy-6);
+
+  // Peel arm
+  if(S.peel > 2) {
+    const armLen = 80 + S.peel * 0.5;
+    const ax = peelX + Math.cos(Math.PI/2-peelA)*armLen;
+    const ay = cy - Math.sin(Math.PI/2-peelA)*armLen;
+    ctx.strokeStyle='rgba(74,200,255,0.8)'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(peelX,cy); ctx.lineTo(ax,ay); ctx.stroke();
+    arrow(ctx,ax-Math.cos(Math.PI/2-peelA)*25,ay+Math.sin(Math.PI/2-peelA)*25,ax,ay,'#4ac8ff',2);
+    ctx.fillStyle='#4ac8ff'; ctx.font='bold 11px DM Sans';
+    ctx.fillText(`Peel ${S.peel}°`,ax+8,ay-6);
+
+    // Detached setae above peel front
+    const dLen = filmW - attachLen;
+    const nDetach = Math.floor(dLen/12);
+    for(let i=0;i<nDetach;i++) {
+      const bx=peelX+i*12, by=cy+filmH/2;
+      const a2 = Math.PI/2-peelA + (Math.random()-0.5)*0.2;
+      const ex=bx+Math.cos(a2)*10, ey=by-Math.sin(a2)*10;
+      ctx.strokeStyle='rgba(255,176,32,0.35)'; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(ex,ey); ctx.stroke();
+      ctx.fillStyle='rgba(200,255,0,0.2)';
+      ctx.beginPath(); ctx.ellipse(ex,ey,3,1.5,a2,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  // Adhesion remaining label
+  const remain = F/computeMaxForce()*100;
+  ctx.fillStyle='rgba(200,255,0,0.85)'; ctx.font='bold 13px DM Sans';
+  ctx.fillText(`Adhesion remaining: ${Math.max(0,remain).toFixed(0)}%`,W*0.62,H*0.25);
+  ctx.fillStyle='rgba(200,215,255,0.65)'; ctx.font='11px DM Sans';
+  ctx.fillText(`At 0° peel: ${computeMaxForce().toFixed(1)} mN shear`,W*0.62,H*0.25+22);
+  ctx.fillText(`At ${S.peel}° peel: ${F.toFixed(1)} mN remaining`,W*0.62,H*0.25+40);
+}
+
+function computeMaxForce() {
+  const saved=S.peel; S.peel=0; const f=computeForce(); S.peel=saved; return f;
+}
+
+/* -- Force Graph -------------------------------------------- */
+function drawGraph() {
+  const c=GC, ctx=gCtx; if(!c||!ctx) return;
+  const W=c.width, H=c.height; if(!W||!H) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#05070d'; ctx.fillRect(0,0,W,H);
+  const hist=S.forceHistory, maxV=Math.max(10,...hist);
+  ctx.strokeStyle='rgba(200,255,0,0.1)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+  if(hist.length<2) return;
+  const gr=ctx.createLinearGradient(0,0,W,0);
+  gr.addColorStop(0,'rgba(200,255,0,0.1)'); gr.addColorStop(1,'rgba(200,255,0,0.9)');
+  ctx.strokeStyle=gr; ctx.lineWidth=1.8;
+  ctx.beginPath();
+  hist.forEach((f,i)=>{ const x=(i/(119))*W, y=H-(f/maxV)*H*0.88-H*0.06; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+  // Current value dot
+  if(hist.length>1) {
+    const lx=((hist.length-1)/119)*W, lv=hist[hist.length-1];
+    const ly=H-(lv/maxV)*H*0.88-H*0.06;
+    ctx.fillStyle='#c8ff00'; ctx.shadowColor='rgba(200,255,0,0.9)'; ctx.shadowBlur=10;
+    ctx.beginPath(); ctx.arc(lx,ly,4,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+  }
+}
+
+/* -- Update UI outputs -------------------------------------- */
+function updateOutputs(F) {
+  const sp = SURFACES[S.surface];
+  const contactPct = (S.density/12000)*(S.spat/500)*(1-sp.roughness)*(S.length/200)*0.8*100;
+  const eff = (F/340)*100;
+  const work = F*0.3e-3*1e6;
+  const vdwP = contactPct > 0 ? (F/contactPct*0.12) : 0;
+  const shear = F*(1-S.peel/180);
+
+  set('o-force',  F.toFixed(2)+' mN');
+  set('o-area',   Math.min(99,contactPct).toFixed(1)+'%');
+  set('o-eff',    Math.min(100,eff).toFixed(1)+'%');
+  set('o-work',   work.toFixed(2)+' µJ/m²');
+  set('o-vdw',    vdwP.toFixed(3)+' MPa');
+  set('o-shear',  shear.toFixed(1)+' mN');
+  set('force-badge', `Adhesion: ${F.toFixed(1)} mN`);
+
+  // Force badge class
+  const fb = document.getElementById('force-badge');
+  if(fb) { fb.className='canvas-force'; fb.classList.add(eff>60?'cf-strong':eff>30?'cf-medium':'cf-weak'); }
+
+  // State badge
+  const badge = document.getElementById('state-badge');
+  if(badge) {
+    if(!S.attached) { badge.className='state-badge sb-off'; badge.textContent='○ Detached — No Grip'; }
+    else if(S.force>F*0.75&&S.peel>30) { badge.className='state-badge sb-mid'; badge.textContent='⚡ Peeling — Grip Weakening'; }
+    else { badge.className='state-badge sb-on'; badge.textContent='● Attached — '+( eff>70?'Strong Grip':eff>35?'Moderate Grip':'Weak Grip'); }
+  }
+
+  // Meters
+  setMeter('mn-a','mf-a', Math.min(100,eff));
+  setMeter('mn-c','mf-c', Math.min(99,contactPct));
+  setMeter('mn-r','mf-r', Math.max(0,95-S.peel*0.4));
+  setMeter('mn-s','mf-s', 78+Math.sin(S.simTime)*3);
+}
+
+function set(id,v) { const e=document.getElementById(id); if(e) e.textContent=v; }
+function setMeter(nId,fId,v) {
+  v=Math.min(100,Math.max(0,v));
+  const n=document.getElementById(nId), f=document.getElementById(fId);
+  if(n) n.textContent=v.toFixed(0)+'%';
+  if(f) f.style.width=v+'%';
+}
+function arrow(ctx,x1,y1,x2,y2,color,w) {
+  const hl=12, a=Math.atan2(y2-y1,x2-x1);
+  ctx.strokeStyle=color; ctx.lineWidth=w;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.fillStyle=color;
+  ctx.beginPath(); ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-hl*Math.cos(a-Math.PI/6),y2-hl*Math.sin(a-Math.PI/6));
+  ctx.lineTo(x2-hl*Math.cos(a+Math.PI/6),y2-hl*Math.sin(a+Math.PI/6));
+  ctx.closePath(); ctx.fill();
+}
+
+/* -- Controls ----------------------------------------------- */
+function setMode(m) {
+  S.mode=m;
+  ['2d','force','peel'].forEach(id=>document.getElementById('tab-'+id)?.classList.remove('active'));
+  document.getElementById('tab-'+m)?.classList.add('active');
+  const labels={'2d':'2D Cross-Section','force':'Force–Distance Curves','peel':'Peel Mechanics'};
+  set('mode-badge',labels[m]);
+}
+function doAttach() { S.attached=true; S.force=0; S.peel=0; document.getElementById('cf').value=0; document.getElementById('cp').value=0; set('vf','0 mN'); set('vp','0°'); }
+function doPeel() {
+  let p=+document.getElementById('cp').value, f=+document.getElementById('cf').value;
+  const t=setInterval(()=>{
+    p=Math.min(180,p+5); f=Math.min(300,f+8);
+    document.getElementById('cp').value=p; document.getElementById('cf').value=f;
+    S.peel=p; S.force=f;
+    set('vp',p+'°'); set('vf',f+' mN');
+    if(p>=130&&f>=220) { S.attached=false; clearInterval(t); }
+  },50);
+}
+function doReset() {
+  S.attached=true; S.peeling=false; S.forceHistory=[]; S.force=0; S.peel=0;
+  S.density=6500; S.angle=30; S.spat=200; S.length=100;
+  S.humidity=50; S.temp=25; S.surface='smooth';
+  ['cd','ca','cs','cl','ch','ct','cf','cp'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value={cd:6500,ca:30,cs:200,cl:100,ch:50,ct:25,cf:0,cp:0}[id]; });
+  document.getElementById('csurf').value='smooth';
+  ['vd','va','vs','vl','vh','vt','vf','vp'].forEach(id=>{
+    set(id,{vd:'6,500 /mm²',va:'30°',vs:'200 nm',vl:'100 µm',vh:'50%',vt:'25°C',vf:'0 mN',vp:'0°'}[id]);
+  });
+}
+
+/* ============================================================
+   OBJECT DEMO SECTION
+   ============================================================ */
+function initObjectDemo() {
+  const grid = document.getElementById('obj-grid');
+  if(!grid) return;
+  OBJECTS.forEach((obj,i)=>{
+    const card = document.createElement('div');
+    card.className='obj-card'+(i===0?' selected':'');
+    card.innerHTML=`
+      <div class="obj-canvas-wrap">
+        <canvas id="objc-${obj.id}" width="300" height="160"></canvas>
+      </div>
+      <div class="obj-card-body">
+        <div class="obj-card-name">${obj.name}</div>
+        <div class="obj-card-sub">${obj.sub}</div>
+        <div class="adhesion-compare">
+          <div class="adh-item adh-gecko">
+            <span class="adh-label">🦎 Gecko Grip</span>
+            <span class="adh-val">${obj.geckoGrip}%</span>
+          </div>
+          <div class="adh-item adh-glue">
+            <span class="adh-label">🧪 Glue Bond</span>
+            <span class="adh-val">${obj.glueGrip}%</span>
+          </div>
+        </div>
+      </div>
+    `;
+    card.onclick = ()=>{ selectObj(i); grid.querySelectorAll('.obj-card').forEach((c,j)=>c.classList.toggle('selected',j===i)); };
+    grid.appendChild(card);
+  });
+
+  // Start object thumbnail animations
+  OBJECTS.forEach(obj => {
+    const c = document.getElementById('objc-'+obj.id);
+    if(c) { obj.draw(c, true); }
+  });
+
+  // Full demo canvases
+  const gc = document.getElementById('demo-gecko-canvas');
+  const glc = document.getElementById('demo-glue-canvas');
+  if(gc && glc) {
+    resizeDemoCanvas(gc); resizeDemoCanvas(glc);
+    window.addEventListener('resize',()=>{ resizeDemoCanvas(gc); resizeDemoCanvas(glc); });
+    S.selectedObj=0;
+    animateDemoCanvases(gc, glc);
+  }
+}
+
+function resizeDemoCanvas(c) {
+  const box=c.parentElement; c.width=box.clientWidth; c.height=box.clientHeight;
+}
+
+function selectObj(i) { S.selectedObj=i; S.objTime=0; }
+
+function animateDemoCanvases(gc, glc) {
+  function frame() {
+    S.objTime += 0.02;
+    const obj = OBJECTS[S.selectedObj];
+    if(obj) {
+      drawGeckoDemoFull(gc, obj);
+      drawGlueDemoFull(glc, obj);
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+/* Object thumbnail drawers */
+function drawGlassWall(c, thumb) {
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#06080e'; ctx.fillRect(0,0,W,H);
+  // Glass surface (vertical)
+  const grad=ctx.createLinearGradient(W*0.55,0,W,0);
+  grad.addColorStop(0,'rgba(74,200,255,0.08)'); grad.addColorStop(1,'rgba(74,200,255,0.18)');
+  ctx.fillStyle=grad; ctx.fillRect(W*0.55,0,W*0.45,H);
+  ctx.strokeStyle='rgba(74,200,255,0.5)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(W*0.55,0); ctx.lineTo(W*0.55,H); ctx.stroke();
+  ctx.fillStyle='rgba(74,200,255,0.7)'; ctx.font=`bold ${thumb?9:11}px DM Sans`;
+  ctx.fillText('Glass Wall',W*0.58,H*0.12);
+  // Gecko body (simple)
+  ctx.fillStyle='rgba(200,255,0,0.15)'; ctx.strokeStyle='rgba(200,255,0,0.4)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.ellipse(W*0.38,H*0.5,W*0.16,H*0.2,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(200,255,0,0.7)'; ctx.font=`${thumb?8:10}px DM Sans`; ctx.fillText('Gecko',W*0.28,H*0.48);
+  // Setae at surface
+  for(let y=H*0.25;y<H*0.78;y+=9) {
+    ctx.strokeStyle='rgba(255,176,32,0.7)'; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(W*0.45,y); ctx.lineTo(W*0.53,y+2); ctx.stroke();
+    ctx.fillStyle='rgba(200,255,0,0.8)';
+    ctx.beginPath(); ctx.ellipse(W*0.535,y+2,3,1.3,0.2,0,Math.PI*2); ctx.fill();
+  }
+}
+
+function drawCeramicTile(c, thumb) {
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#06080e'; ctx.fillRect(0,0,W,H);
+  const tileY=H*0.62;
+  // Tile surface (rough)
+  ctx.fillStyle='rgba(255,176,32,0.1)'; ctx.fillRect(0,tileY,W,H-tileY);
+  ctx.strokeStyle='rgba(255,176,32,0.4)'; ctx.lineWidth=1.2;
+  ctx.beginPath();
+  for(let x=0;x<=W;x+=4) { const n=Math.sin(x*0.3)*3+Math.cos(x*0.7)*2; x===0?ctx.moveTo(x,tileY+n):ctx.lineTo(x,tileY+n); }
+  ctx.stroke();
+  // Grout lines
+  ctx.strokeStyle='rgba(255,176,32,0.2)'; ctx.lineWidth=1;
+  for(let x=30;x<W;x+=30) { ctx.beginPath(); ctx.moveTo(x,tileY); ctx.lineTo(x,H); ctx.stroke(); }
+  // Gecko pad coming from top
+  ctx.fillStyle='rgba(74,200,255,0.15)'; ctx.strokeStyle='rgba(74,200,255,0.45)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.roundRect(W*0.2,H*0.15,W*0.6,16,3); ctx.fill(); ctx.stroke();
+  for(let i=0;i<12;i++) {
+    const bx=W*0.22+i*(W*0.6/11);
+    ctx.strokeStyle='rgba(255,176,32,0.75)'; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(bx,H*0.15+16); ctx.lineTo(bx+2,H*0.62-8); ctx.stroke();
+    ctx.fillStyle='rgba(200,255,0,0.7)';
+    ctx.beginPath(); ctx.ellipse(bx+2,H*0.62-6,3,1.3,0.2,0,Math.PI*2); ctx.fill();
+  }
+}
+
+function drawTreeBark(c, thumb) {
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#06080e'; ctx.fillRect(0,0,W,H);
+  const surfY=H*0.6;
+  // Rough bark
+  ctx.fillStyle='rgba(120,80,40,0.2)'; ctx.fillRect(0,surfY,W,H-surfY);
+  ctx.strokeStyle='rgba(180,120,60,0.5)'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  for(let x=0;x<=W;x+=3) { const n=Math.sin(x*0.12)*12+Math.cos(x*0.35)*7+Math.sin(x*0.08)*10; x===0?ctx.moveTo(x,surfY+n):ctx.lineTo(x,surfY+n); }
+  ctx.stroke();
+  ctx.strokeStyle='rgba(120,80,40,0.3)'; ctx.lineWidth=1;
+  for(let i=0;i<5;i++) { ctx.beginPath(); ctx.moveTo(0,surfY+15+i*8+Math.random()*5); ctx.bezierCurveTo(W/3,surfY+12+i*7,2*W/3,surfY+18+i*7,W,surfY+14+i*8); ctx.stroke(); }
+  ctx.fillStyle='rgba(180,120,60,0.7)'; ctx.font=`${thumb?9:11}px DM Sans`; ctx.fillText('Tree Bark (rough)',8,surfY+20);
+  // Gecko toe (struggling)
+  ctx.fillStyle='rgba(74,200,255,0.12)'; ctx.strokeStyle='rgba(74,200,255,0.35)'; ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.roundRect(W*0.15,H*0.2,W*0.7,14,2); ctx.fill(); ctx.stroke();
+  for(let i=0;i<10;i++) {
+    const bx=W*0.17+i*(W*0.7/9), noise=(Math.random()-0.5)*8;
+    ctx.strokeStyle='rgba(255,176,32,0.5)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(bx,H*0.2+14); ctx.lineTo(bx+noise,surfY-4); ctx.stroke();
+    ctx.fillStyle='rgba(200,255,0,0.35)'; // dim — bad contact on bark
+    ctx.beginPath(); ctx.ellipse(bx+noise,surfY-3,2.5,1.2,0.2,0,Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle='rgba(255,94,94,0.7)'; ctx.font=`${thumb?8:10}px DM Sans`; ctx.fillText('Poor contact on rough bark',8,H*0.2-5);
+}
+
+function drawTeflon(c, thumb) {
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#06080e'; ctx.fillRect(0,0,W,H);
+  const surfY=H*0.62;
+  ctx.fillStyle='rgba(176,126,255,0.08)'; ctx.fillRect(0,surfY,W,H-surfY);
+  ctx.strokeStyle='rgba(176,126,255,0.5)'; ctx.lineWidth=1.8;
+  ctx.beginPath(); ctx.moveTo(0,surfY); ctx.lineTo(W,surfY); ctx.stroke();
+  ctx.fillStyle='rgba(176,126,255,0.7)'; ctx.font=`${thumb?9:11}px DM Sans`; ctx.fillText('Teflon (PTFE)',8,surfY+18);
+  // Droplets rolling off
+  for(let i=0;i<4;i++) { ctx.strokeStyle='rgba(74,200,255,0.4)'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.ellipse(W*0.15+i*W*0.2,surfY-8,5,6,0,0,Math.PI*2); ctx.stroke(); }
+  // Gecko doing OK
+  ctx.fillStyle='rgba(74,200,255,0.13)'; ctx.strokeStyle='rgba(74,200,255,0.4)'; ctx.lineWidth=1.3;
+  ctx.beginPath(); ctx.roundRect(W*0.18,H*0.18,W*0.64,14,2); ctx.fill(); ctx.stroke();
+  for(let i=0;i<10;i++) {
+    const bx=W*0.2+i*(W*0.64/9);
+    ctx.strokeStyle='rgba(255,176,32,0.65)'; ctx.lineWidth=1.1;
+    ctx.beginPath(); ctx.moveTo(bx,H*0.18+14); ctx.lineTo(bx+1,surfY-5); ctx.stroke();
+    ctx.fillStyle='rgba(200,255,0,0.5)';
+    ctx.beginPath(); ctx.ellipse(bx+1,surfY-4,3,1.3,0.2,0,Math.PI*2); ctx.fill();
+  }
+}
+
+/* Full-size gecko demo */
+function drawGeckoDemoFull(c, obj) {
+  const ctx=c.getContext('2d'),W=c.width,H=c.height; if(!W||!H) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#05070d'; ctx.fillRect(0,0,W,H);
+  const surfY=H*0.68, t=S.objTime;
+  const roughness={glass:0.02,tile:0.12,bark:0.42,teflon:0.04}[obj.id]||0.08;
+  const surfColor={glass:'#4ac8ff',tile:'#ffb020',bark:'rgba(180,120,60,1)',teflon:'#b07eff'}[obj.id]||'#4ac8ff';
+
+  // Surface
+  ctx.fillStyle='rgba(12,16,28,0.9)'; ctx.fillRect(0,surfY+6,W,H-surfY);
+  ctx.strokeStyle=surfColor; ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let x=0;x<=W;x+=3) { const n=Math.sin(x*0.08)*roughness*30+Math.cos(x*0.25)*roughness*14; x===0?ctx.moveTo(x,surfY+n):ctx.lineTo(x,surfY+n); }
+  ctx.stroke();
+  ctx.fillStyle=surfColor+'cc'; ctx.font='bold 12px DM Sans'; ctx.fillText(obj.name,12,surfY+28);
+
+  // vdW glow
+  const glowA=0.08+Math.sin(t*1.2)*0.04;
+  const g=ctx.createLinearGradient(0,surfY-15,0,surfY+5);
+  g.addColorStop(0,`rgba(200,255,0,${glowA})`); g.addColorStop(1,'transparent');
+  ctx.fillStyle=g; ctx.fillRect(0,surfY-15,W,15);
+
+  // Lamella
+  const lameY=surfY-40;
+  ctx.fillStyle='rgba(74,200,255,0.12)'; ctx.strokeStyle='rgba(74,200,255,0.45)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.roundRect(W*0.1,lameY,W*0.8,22,3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(74,200,255,0.7)'; ctx.font='bold 11px DM Sans'; ctx.fillText('Lamella — Gecko Toe',W*0.12,lameY+15);
+
+  // Setae
+  const cols=28, grip=obj.geckoGrip/100;
+  for(let i=0;i<cols;i++) {
+    const bx=W*0.12+i*((W*0.78)/cols), by=lameY+22;
+    const sway=Math.sin(t*0.9+i*0.5)*0.08;
+    const a=0.45+sway;
+    const stalkPx=38;
+    const ex=bx+Math.cos(a)*stalkPx*0.5, ey=by+Math.sin(a)*stalkPx;
+    ctx.strokeStyle=`rgba(255,176,32,${0.6+grip*0.35})`; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(ex,ey); ctx.stroke();
+    const numS=3;
+    for(let s=0;s<numS;s++) {
+      const sp=(s/2-0.5)*0.8, sa=a+sp, sl=12;
+      const stx=ex+Math.cos(sa)*sl, sty=ey+Math.sin(sa)*sl*0.4;
+      ctx.strokeStyle='rgba(200,255,0,0.7)'; ctx.lineWidth=0.9;
+      ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(stx,sty); ctx.stroke();
+      const nearSurf=sty>surfY-14;
+      ctx.fillStyle=nearSurf?`rgba(200,255,0,${0.5+grip*0.5})`:'rgba(200,255,0,0.3)';
+      if(nearSurf && grip>0.6) { ctx.shadowColor='rgba(200,255,0,0.7)'; ctx.shadowBlur=4; }
+      ctx.beginPath(); ctx.ellipse(stx,sty,3.5,1.5,sa,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+    }
+  }
+
+  // Grip label
+  const gripColor=grip>0.8?'#c8ff00':grip>0.5?'#ffb020':'#ff5e5e';
+  ctx.fillStyle=gripColor; ctx.font='bold 14px DM Sans';
+  ctx.fillText(`Gecko Grip: ${obj.geckoGrip}%`,W/2-60,H*0.15);
+  ctx.fillStyle='rgba(200,215,255,0.7)'; ctx.font='11px DM Sans';
+  ctx.fillText(obj.geckoNote,W/2-60,H*0.15+20);
+
+  // Reversible badge
+  ctx.fillStyle='rgba(200,255,0,0.12)'; ctx.strokeStyle='rgba(200,255,0,0.4)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.roundRect(W-140,12,128,22,3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#c8ff00'; ctx.font='bold 10px DM Sans'; ctx.fillText('✓ No residue · Reversible',W-136,27);
+}
+
+/* Full-size glue demo */
+function drawGlueDemoFull(c, obj) {
+  const ctx=c.getContext('2d'),W=c.width,H=c.height; if(!W||!H) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#05070d'; ctx.fillRect(0,0,W,H);
+  const surfY=H*0.68, t=S.objTime;
+  const roughness={glass:0.02,tile:0.12,bark:0.42,teflon:0.04}[obj.id]||0.08;
+  const surfColor={glass:'#4ac8ff',tile:'#ffb020',bark:'rgba(180,120,60,1)',teflon:'#b07eff'}[obj.id]||'#4ac8ff';
+  const bond=obj.glueGrip/100;
+
+  ctx.fillStyle='rgba(12,16,28,0.9)'; ctx.fillRect(0,surfY+6,W,H-surfY);
+  ctx.strokeStyle=surfColor; ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let x=0;x<=W;x+=3) { const n=Math.sin(x*0.08)*roughness*30+Math.cos(x*0.25)*roughness*14; x===0?ctx.moveTo(x,surfY+n):ctx.lineTo(x,surfY+n); }
+  ctx.stroke();
+  ctx.fillStyle=surfColor+'cc'; ctx.font='bold 12px DM Sans'; ctx.fillText(obj.name,12,surfY+28);
+
+  // Glue layer (orange/amber)
+  const glueY=surfY-12;
+  const glueGrad=ctx.createLinearGradient(0,glueY,0,surfY);
+  glueGrad.addColorStop(0,`rgba(255,140,0,${0.05+bond*0.22})`);
+  glueGrad.addColorStop(1,`rgba(255,140,0,${0.3+bond*0.35})`);
+  ctx.fillStyle=glueGrad; ctx.fillRect(W*0.08,glueY,W*0.84,12);
+
+  // Glue drips
+  for(let i=0;i<8;i++) {
+    const dx=W*0.1+i*(W*0.8/7);
+    const dripH=(6+roughness*20)*bond+Math.sin(t*0.5+i)*3;
+    ctx.fillStyle=`rgba(255,140,0,${0.3+bond*0.3})`;
+    ctx.beginPath(); ctx.ellipse(dx,surfY+5+dripH/2,4,dripH/2,0,0,Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle='rgba(255,140,0,0.7)'; ctx.font='11px DM Sans';
+  ctx.fillText('Chemical glue layer — polymer penetration',W*0.1,glueY-5);
+
+  // Object (generic rectangle attached)
+  ctx.fillStyle=`rgba(100,130,200,${0.1+bond*0.15})`; ctx.strokeStyle=`rgba(100,130,200,${0.3+bond*0.3})`; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.roundRect(W*0.15,H*0.12,W*0.7,surfY-12-H*0.12-4,4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(200,215,255,0.6)'; ctx.font='bold 11px DM Sans'; ctx.fillText('Substrate / Object',W*0.17,H*0.25);
+
+  // Residue dots scattered around
+  for(let i=0;i<12;i++) {
+    const rx=W*0.08+Math.random()*W*0.84, ry=surfY+10+Math.random()*30;
+    ctx.fillStyle=`rgba(255,140,0,${0.2+bond*0.25})`;
+    ctx.beginPath(); ctx.ellipse(rx,ry,3+Math.random()*4,2+Math.random()*3,Math.random(),0,Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle='rgba(255,120,0,0.6)'; ctx.font='10px DM Sans'; ctx.fillText('Residue left after removal',W*0.08,surfY+52);
+
+  // Bond label
+  const bondColor=bond>0.7?'#ffb020':bond>0.4?'#ff9040':'#ff5e5e';
+  ctx.fillStyle=bondColor; ctx.font='bold 14px DM Sans';
+  ctx.fillText(`Glue Bond: ${obj.glueGrip}%`,W/2-55,H*0.12-15);
+  ctx.fillStyle='rgba(200,215,255,0.7)'; ctx.font='11px DM Sans';
+  ctx.fillText(obj.glueNote,W/2-55,H*0.12-15+20);
+
+  // Permanent badge
+  ctx.fillStyle='rgba(255,94,94,0.1)'; ctx.strokeStyle='rgba(255,94,94,0.35)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.roundRect(W-148,12,136,22,3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#ff5e5e'; ctx.font='bold 10px DM Sans'; ctx.fillText('✗ Leaves residue · Permanent',W-144,27);
+}
+
+/* ============================================================
+   OPTIMIZATION
+   ============================================================ */
+let optRunning=false;
+function runOpt() {
+  if(optRunning) return; optRunning=true;
+  const surf=S.surface, sp=SURFACES[surf];
+  set('opt-status',`Running for ${sp.name}...`);
+  const targets={
+    smooth:      {d:8.5,a:22,f:285,g:38},
+    rough:       {d:11.0,a:14,f:200,g:54},
+    hydrophobic: {d:6.0,a:36,f:148,g:23},
+    hydrophilic: {d:9.2,a:18,f:315,g:46},
+    elastic:     {d:7.8,a:27,f:245,g:37}
+  };
+  const tgt=targets[surf]||targets.smooth;
+  const hist=[]; let iter=0;
+  const tick=setInterval(()=>{
+    iter++;
+    const prog=iter/65, noise=(1-prog)*(Math.random()-0.5)*0.35;
+    hist.push(Math.max(0,tgt.f*prog+noise*tgt.f*0.28+Math.random()*4));
+    if(OC && oCtx) {
+      const W=OC.width,H=OC.height;
+      oCtx.clearRect(0,0,W,H); oCtx.fillStyle='#05070d'; oCtx.fillRect(0,0,W,H);
+      oCtx.strokeStyle='rgba(200,255,0,0.07)'; oCtx.lineWidth=1;
+      for(let i=0;i<4;i++) { oCtx.beginPath(); oCtx.moveTo(0,H/4*i); oCtx.lineTo(W,H/4*i); oCtx.stroke(); }
+      oCtx.strokeStyle='#c8ff00'; oCtx.lineWidth=1.8;
+      oCtx.beginPath();
+      hist.forEach((v,i)=>{ const x=(i/64)*W,y=H-(v/tgt.f)*H*0.85-5; i===0?oCtx.moveTo(x,y):oCtx.lineTo(x,y); });
+      oCtx.stroke();
+      if(hist.length>1) {
+        const lx=((hist.length-1)/64)*W,ly=H-(hist[hist.length-1]/tgt.f)*H*0.85-5;
+        oCtx.fillStyle='#c8ff00'; oCtx.shadowColor='rgba(200,255,0,0.8)'; oCtx.shadowBlur=10;
+        oCtx.beginPath(); oCtx.arc(lx,ly,4,0,Math.PI*2); oCtx.fill(); oCtx.shadowBlur=0;
+      }
+    }
+    if(iter>=65) {
+      clearInterval(tick); optRunning=false;
+      set('ov-d',tgt.d.toFixed(1)); set('ov-a',tgt.a+''); set('ov-f',tgt.f.toFixed(0)); set('ov-g',tgt.g+'');
+      set('od-d','↑ vs 6.5k biological baseline'); set('od-a','↓ lower angle = stronger shear');
+      set('od-f',`↑ ${tgt.g}% over default config`); set('od-g','efficiency gain over base gecko');
+      set('opt-status',`✓ Converged in 65 steps for ${sp.name}`);
+    }
+  },55);
+}
+
+/* ============================================================
+   SCROLL REVEAL
+   ============================================================ */
+const revObs = new IntersectionObserver(entries=>entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
+
+/* ============================================================
+   INIT
+   ============================================================ */
+window.addEventListener('load', ()=>{
+  initSim();
+  initObjectDemo();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,3583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mussel-Inspired Adhesion | NMIMS Mumbai</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #030810;
+    --surface: #080f1e;
+    --teal: #00e5c8;
+    --cyan: #00b8ff;
+    --amber: #ffb347;
+    --violet: #a78bfa;
+    --coral: #ff6b6b;
+    --emerald: #06d6a0;
+    --gold: #ffd700;
+    --ocean: #0066cc;
+    --rose: #ff4d8f;
+    --lime: #a8ff3e;
+    --text: #d0e8f0;
+    --muted: #4a6478;
+    --glass: rgba(8,20,40,0.7);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.2rem 3rem;
+    background: rgba(3,8,16,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(0,229,200,0.12);
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; font-weight: 300;
+    color: var(--teal); letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--teal); }
+
+  /* SECTIONS */
+  section {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 7rem 3rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section-number {
+    position: absolute; top: 5.5rem; left: 3rem;
+    font-size: 0.65rem; color: var(--muted);
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+
+  /* HERO */
+  #hero {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  .hero-bg-photo {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    filter: brightness(0.38) saturate(1.3);
+    transform: scale(1.04);
+    animation: heroZoom 18s ease-in-out infinite alternate;
+    z-index: 0;
+  }
+  @keyframes heroZoom { from{transform:scale(1.04);}  to{transform:scale(1.12);} }
+
+  .hero-gradient-overlay {
+    position: absolute; inset: 0; z-index: 1;
+    background:
+      radial-gradient(ellipse at 30% 70%, rgba(0,102,204,0.45) 0%, transparent 55%),
+      radial-gradient(ellipse at 75% 30%, rgba(255,107,107,0.3) 0%, transparent 45%),
+      radial-gradient(ellipse at 50% 90%, rgba(0,229,200,0.25) 0%, transparent 50%),
+      linear-gradient(180deg, rgba(3,8,16,0.2) 0%, rgba(3,8,16,0.6) 100%);
+  }
+  .hero-wave {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+    height: 120px; overflow: hidden;
+  }
+  .hero-wave svg { width: 100%; height: 100%; }
+  #hero-canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    opacity: 0.6; z-index: 3;
+  }
+  .hero-content { position: relative; z-index: 4; padding: 0 2rem; }
+
+  .hero-badge-row {
+    display: flex; justify-content: center; gap: 0.6rem;
+    flex-wrap: wrap; margin-bottom: 1.8rem;
+    animation: fadeUp 1s ease both;
+  }
+  .hero-badge {
+    font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 0.3rem 0.8rem; border-radius: 20px; border: 1px solid;
+  }
+  .hb-teal  { color: var(--teal);   border-color: rgba(0,229,200,0.4);   background: rgba(0,229,200,0.08); }
+  .hb-coral { color: var(--coral);  border-color: rgba(255,107,107,0.4); background: rgba(255,107,107,0.08); }
+  .hb-blue  { color: var(--cyan);   border-color: rgba(0,184,255,0.4);   background: rgba(0,184,255,0.08); }
+
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3.2rem, 8vw, 7.5rem);
+    font-weight: 300; line-height: 1.02;
+    letter-spacing: -0.02em;
+    animation: fadeUp 1s 0.12s ease both;
+    background: linear-gradient(135deg, #ffffff 0%, #a0f0e8 35%, #ff9e6d 65%, #c8a8ff 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 40px rgba(0,229,200,0.25));
+  }
+  .hero-title-line2 {
+    display: block;
+    background: linear-gradient(135deg, #00e5c8 0%, #4db8ff 50%, #a78bfa 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-style: italic;
+  }
+
+  .hero-sub {
+    margin-top: 1.2rem;
+    font-size: 0.88rem; color: rgba(200,230,240,0.8);
+    letter-spacing: 0.03em; line-height: 1.9;
+    max-width: 560px; margin-left: auto; margin-right: auto;
+    animation: fadeUp 1s 0.3s ease both;
+  }
+
+  /* Group credit card */
+  .hero-group {
+    margin-top: 2.2rem;
+    display: inline-flex; flex-direction: column; align-items: center;
+    gap: 0.6rem;
+    background: rgba(3,8,16,0.55);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 1rem 2rem;
+    animation: fadeUp 1s 0.45s ease both;
+  }
+  .hero-group-label {
+    font-size: 0.5rem; color: var(--teal); letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+  .hero-group-names {
+    display: flex; gap: 0; flex-wrap: wrap; justify-content: center;
+  }
+  .hero-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem; font-weight: 400;
+    padding: 0 0.8rem; line-height: 1.4;
+    position: relative;
+  }
+  .hero-name:not(:last-child)::after {
+    content: '·'; position: absolute; right: -2px;
+    color: var(--muted);
+  }
+  .hero-name:nth-child(1) { color: #00e5c8; }
+  .hero-name:nth-child(2) { color: #ff9e8a; }
+  .hero-name:nth-child(3) { color: #a8d8ff; }
+  .hero-name:nth-child(4) { color: #c8a8ff; }
+  .hero-group-inst {
+    font-size: 0.52rem; color: var(--muted); letter-spacing: 0.12em;
+  }
+
+  .scroll-cue {
+    margin-top: 2.5rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    animation: fadeUp 1s 0.65s ease both;
+  }
+  .scroll-cue span { font-size: 0.55rem; color: rgba(200,220,240,0.5); letter-spacing: 0.2em; text-transform: uppercase; }
+  .scroll-line {
+    width: 1px; height: 48px;
+    background: linear-gradient(to bottom, var(--teal), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Section color accents by ID */
+  #problem  { background: radial-gradient(ellipse at 80% 40%, rgba(167,139,250,0.1) 0%, transparent 55%); }
+  #simulator{ background: radial-gradient(ellipse at 20% 50%, rgba(255,107,107,0.07) 0%, transparent 55%); }
+  #biology  { background: radial-gradient(ellipse at 15% 50%, rgba(0,102,204,0.1) 0%, transparent 55%), radial-gradient(ellipse at 85% 30%, rgba(6,214,160,0.06) 0%, transparent 50%); }
+  #dopa     { background: radial-gradient(ellipse at 70% 40%, rgba(255,179,71,0.08) 0%, transparent 55%); }
+  #mechanism{ background: radial-gradient(ellipse at 30% 60%, rgba(255,215,0,0.07) 0%, transparent 55%); }
+  #ph       { background: radial-gradient(ellipse at 60% 50%, rgba(255,77,143,0.08) 0%, transparent 55%); }
+  #applications{ background: radial-gradient(ellipse at 50% 40%, rgba(6,214,160,0.07) 0%, transparent 55%); }
+  #timeline { background: radial-gradient(ellipse at 40% 50%, rgba(168,255,62,0.05) 0%, transparent 55%); }
+  #param-sim{ background: radial-gradient(ellipse at 65% 40%, rgba(0,102,204,0.08) 0%, transparent 55%), radial-gradient(ellipse at 30% 70%, rgba(255,107,107,0.06) 0%, transparent 50%); }
+
+  /* Section eyebrow colors per section */
+  #problem  .section-eyebrow { color: var(--violet); }
+  #simulator .section-eyebrow { color: var(--coral); }
+  #biology  .section-eyebrow { color: #4db8ff; }
+  #dopa     .section-eyebrow { color: var(--amber); }
+  #mechanism .section-eyebrow { color: var(--gold); }
+  #ph       .section-eyebrow { color: var(--rose); }
+  #applications .section-eyebrow { color: var(--emerald); }
+  #timeline .section-eyebrow { color: var(--lime); }
+
+  /* Card color variants */
+  .card:nth-child(1) { border-color: rgba(0,229,200,0.15); }
+  .card:nth-child(2) { border-color: rgba(255,107,107,0.15); }
+  .card:nth-child(3) { border-color: rgba(167,139,250,0.15); }
+  .card:nth-child(4) { border-color: rgba(255,179,71,0.15); }
+  .card:nth-child(5) { border-color: rgba(6,214,160,0.15); }
+  .card:nth-child(6) { border-color: rgba(0,184,255,0.15); }
+
+  /* Nav colored hover */
+  .nav-links a:nth-child(3) { }
+  .nav-links a[href="#simulator"]:hover { color: var(--coral) !important; }
+  .nav-links a[href="#biology"]:hover   { color: #4db8ff !important; }
+  .nav-links a[href="#dopa"]:hover      { color: var(--amber) !important; }
+  .nav-links a[href="#mechanism"]:hover { color: var(--gold) !important; }
+  .nav-links a[href="#ph"]:hover        { color: var(--rose) !important; }
+
+  /* Ocean photo strip between sections */
+  .ocean-strip {
+    width: 100%; height: 220px; overflow: hidden; position: relative;
+  }
+  .ocean-strip img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: brightness(0.5) saturate(1.2);
+  }
+  .ocean-strip-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg,
+      var(--bg) 0%, transparent 25%, transparent 75%, var(--bg) 100%);
+  }
+  .ocean-strip-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 300;
+    color: rgba(255,255,255,0.7); letter-spacing: 0.08em;
+    font-style: italic;
+  }
+
+  /* CONTENT LAYOUT */
+  .two-col {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; align-items: center;
+    width: 100%; max-width: 1200px; margin: 0 auto;
+  }
+  .three-col {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 2rem; width: 100%; max-width: 1200px; margin: 0 auto;
+  }
+
+  .section-eyebrow {
+    font-size: 0.6rem; color: var(--teal);
+    letter-spacing: 0.3em; text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 3.5vw, 3.2rem);
+    font-weight: 300; line-height: 1.15;
+    margin-bottom: 1.5rem;
+  }
+  .section-body {
+    font-size: 0.82rem; color: var(--muted);
+    line-height: 1.9; margin-bottom: 1.2rem;
+  }
+
+  /* CANVAS CONTAINERS */
+  .sim-box {
+    background: var(--surface);
+    border: 1px solid rgba(0,229,200,0.15);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    min-height: 360px;
+  }
+  .sim-box canvas { display: block; width: 100% !important; height: 100% !important; }
+  .sim-label {
+    position: absolute; bottom: 1rem; left: 1rem;
+    font-size: 0.6rem; color: var(--muted);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    background: rgba(3,8,16,0.7); padding: 0.3rem 0.6rem;
+    border: 1px solid rgba(0,229,200,0.1); border-radius: 2px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--glass);
+    border: 1px solid rgba(0,229,200,0.12);
+    border-radius: 4px;
+    padding: 2rem;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .card:hover {
+    border-color: rgba(0,229,200,0.4);
+    transform: translateY(-4px);
+  }
+  .card-icon {
+    font-size: 1.8rem; margin-bottom: 1rem;
+    display: block;
+  }
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem; font-weight: 400;
+    margin-bottom: 0.7rem; color: var(--text);
+  }
+  .card-body { font-size: 0.75rem; color: var(--muted); line-height: 1.8; }
+
+  /* STAT BARS */
+  .stat-item { margin-bottom: 1.5rem; }
+  .stat-label { font-size: 0.68rem; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.05em; }
+  .stat-bar-bg {
+    height: 3px; background: rgba(255,255,255,0.06);
+    border-radius: 2px; overflow: hidden;
+  }
+  .stat-bar-fill {
+    height: 100%; background: linear-gradient(90deg, var(--teal), var(--cyan));
+    border-radius: 2px;
+    transition: width 1.5s cubic-bezier(0.16,1,0.3,1);
+    width: 0;
+  }
+  .stat-val {
+    font-size: 0.65rem; color: var(--teal);
+    margin-top: 0.3rem; text-align: right;
+  }
+
+  /* STEP FLOW */
+  .step-flow { display: flex; flex-direction: column; gap: 1.2rem; }
+  .step-item {
+    display: flex; gap: 1.2rem; align-items: flex-start;
+    padding: 1rem 1.2rem;
+    background: rgba(0,229,200,0.03);
+    border-left: 2px solid rgba(0,229,200,0.2);
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .step-item:hover, .step-item.active {
+    background: rgba(0,229,200,0.08);
+    border-color: var(--teal);
+  }
+  .step-num {
+    font-size: 0.6rem; color: var(--teal);
+    border: 1px solid var(--teal); border-radius: 50%;
+    width: 22px; height: 22px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-text { font-size: 0.78rem; color: var(--muted); line-height: 1.7; }
+  .step-text strong { color: var(--text); display: block; font-size: 0.82rem; margin-bottom: 0.2rem; }
+
+  /* pH SLIDER */
+  .ph-control {
+    background: var(--glass);
+    border: 1px solid rgba(0,229,200,0.12);
+    border-radius: 4px; padding: 2rem;
+  }
+  .ph-slider-wrap {
+    margin: 1.5rem 0;
+    display: flex; align-items: center; gap: 1.2rem;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1; height: 3px;
+    background: linear-gradient(90deg, var(--teal) 0%, var(--amber) 50%, #ff4444 100%);
+    border-radius: 2px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--teal);
+    cursor: pointer;
+    transition: border-color 0.3s;
+  }
+  .ph-display {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem; font-weight: 300;
+    color: var(--teal); min-width: 60px; text-align: center;
+    transition: color 0.5s;
+  }
+  .ph-status {
+    font-size: 0.72rem; margin-top: 0.8rem; line-height: 1.8; color: var(--muted);
+  }
+  .ph-status .status-badge {
+    display: inline-block; padding: 0.2rem 0.6rem;
+    border-radius: 2px; font-size: 0.65rem;
+    background: rgba(0,229,200,0.12); color: var(--teal);
+    transition: background 0.5s, color 0.5s;
+  }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 1px; background: linear-gradient(to bottom, var(--teal), transparent);
+  }
+  .timeline-item {
+    position: relative; margin-bottom: 2rem;
+    padding-left: 1.5rem;
+  }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -2.4rem; top: 0.35rem;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--teal); box-shadow: 0 0 8px var(--teal);
+  }
+  .timeline-year {
+    font-size: 0.6rem; color: var(--teal);
+    letter-spacing: 0.15em; margin-bottom: 0.3rem;
+  }
+  .timeline-event {
+    font-size: 0.8rem; color: var(--muted); line-height: 1.6;
+  }
+
+  /* TAGS */
+  .tag-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .tag {
+    font-size: 0.62rem; padding: 0.25rem 0.7rem;
+    border: 1px solid rgba(0,229,200,0.3);
+    border-radius: 20px; color: var(--teal);
+    letter-spacing: 0.05em;
+  }
+  .tag.amber { border-color: rgba(255,179,71,0.3); color: var(--amber); }
+  .tag.violet { border-color: rgba(167,139,250,0.3); color: var(--violet); }
+
+  /* BOND TYPES */
+  .bond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .bond-item {
+    padding: 1rem;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 4px;
+    background: rgba(0,229,200,0.03);
+    transition: border-color 0.3s;
+  }
+  .bond-item:hover { border-color: rgba(0,229,200,0.25); }
+  .bond-name { font-size: 0.72rem; color: var(--text); margin-bottom: 0.3rem; }
+  .bond-desc { font-size: 0.65rem; color: var(--muted); line-height: 1.7; }
+  .bond-strength {
+    margin-top: 0.5rem; height: 2px;
+    background: rgba(255,255,255,0.05); border-radius: 1px;
+    overflow: hidden;
+  }
+  .bond-strength-fill { height: 100%; border-radius: 1px; }
+
+  /* FOOTER */
+  footer {
+    padding: 3rem;
+    border-top: 1px solid rgba(0,229,200,0.1);
+    text-align: center;
+    font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em;
+  }
+
+  /* SECTION BGs */
+  #problem { background: radial-gradient(ellipse at 80% 50%, rgba(167,139,250,0.06) 0%, transparent 60%); }
+  #biology { background: radial-gradient(ellipse at 20% 50%, rgba(0,184,255,0.06) 0%, transparent 60%); }
+  #dopa { background: radial-gradient(ellipse at 70% 40%, rgba(0,229,200,0.05) 0%, transparent 60%); }
+  #mechanism { background: radial-gradient(ellipse at 30% 60%, rgba(255,179,71,0.05) 0%, transparent 60%); }
+  #applications { background: radial-gradient(ellipse at 60% 50%, rgba(0,229,200,0.04) 0%, transparent 60%); }
+
+  /* GLOW ORBS */
+  .orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); pointer-events: none; opacity: 0.15;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .two-col, .three-col { grid-template-columns: 1fr; }
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 6rem 1.5rem 3rem; }
+  }
+
+  /* =====================================================
+     SIMULATOR WIDGET — scoped styles
+  ===================================================== */
+  #simulator { flex-direction: column; align-items: flex-start; padding-bottom: 0; }
+  #simulator .sim-intro { max-width: 1200px; margin: 0 auto; width: 100%; }
+
+  .sim-widget {
+    width: 100%; margin-top: 2.5rem;
+    border: 1px solid rgba(0,229,200,0.2);
+    border-bottom: none; border-radius: 4px 4px 0 0;
+    overflow: hidden; display: flex; flex-direction: column;
+    height: 74vh; min-height: 520px;
+    background: #04090f; position: relative;
+  }
+
+  /* widget top bar */
+  .sw-header {
+    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+    padding: 0.65rem 1.5rem;
+    background: rgba(8,15,28,0.95);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .sw-hdr-left { display: flex; align-items: center; gap: 0.8rem; }
+  .sw-tag {
+    font-size: 0.52rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--teal); border: 1px solid rgba(0,229,200,0.3);
+    padding: 0.15rem 0.45rem; border-radius: 2px;
+  }
+  .sw-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.9rem; font-weight: 300; color: var(--text);
+  }
+  .sw-title em { font-style: italic; color: var(--teal); }
+  .sw-legend { display: flex; gap: 1rem; align-items: center; }
+  .sw-leg-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.52rem; color: var(--muted); }
+  .sw-leg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* autoplay */
+  #s2-autoplay-btn {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: rgba(0,229,200,0.07); color: var(--teal);
+    border: 1px solid rgba(0,229,200,0.25); border-radius: 2px;
+    padding: 0.3rem 0.8rem; cursor: pointer; transition: all 0.2s;
+  }
+  #s2-autoplay-btn:hover { background: rgba(0,229,200,0.14); }
+  #s2-autoplay-btn.playing { color: #ff4560; border-color: rgba(255,69,96,0.35); background: rgba(255,69,96,0.07); }
+
+  /* canvas area */
+  .sw-canvas-area {
+    flex: 1; display: flex; position: relative; min-height: 0;
+    overflow: hidden;
+  }
+  #s2-sim-canvas { width: 100%; height: 100%; display: block; }
+
+  /* overlay labels */
+  .sw-col-label {
+    position: absolute; top: 0; z-index: 5; pointer-events: none;
+    display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.9rem;
+  }
+  .sw-col-label-left  { left: 0; }
+  .sw-col-label-right { right: 0; }
+  .sw-ldot  { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .sw-ltext { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* status badges inside widget */
+  .sw-status {
+    position: absolute; top: 2.4rem; z-index: 5; pointer-events: none;
+    display: flex; align-items: center; gap: 0.35rem;
+    padding: 0.2rem 0.6rem; border-radius: 2px;
+    font-size: 0.55rem; letter-spacing: 0.08em; text-transform: uppercase;
+    border: 1px solid; transition: all 0.4s;
+  }
+  .sw-status-left  { left: 0.9rem; }
+  .sw-status-right { right: 0.9rem; }
+  .sw-status.bonded { color: #06d6a0; border-color: rgba(6,214,160,0.3); background: rgba(6,214,160,0.07); }
+  .sw-status.broken { color: #ff4560; border-color: rgba(255,69,96,0.3); background: rgba(255,69,96,0.07); }
+  .sw-sdot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .sw-sdot.pulse { animation: swpulse 1.2s ease-in-out infinite; }
+  @keyframes swpulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.35;transform:scale(0.5);} }
+
+  /* VS divider */
+  .sw-divider {
+    position: absolute; left: 50%; top: 0; bottom: 0;
+    width: 1px; background: rgba(255,255,255,0.07); z-index: 5; pointer-events: none;
+  }
+  .sw-divider::after {
+    content: 'VS';
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    background: #04090f; padding: 0.4rem 0.3rem;
+    font-size: 0.5rem; color: var(--muted);
+    letter-spacing: 0.2em; font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+  }
+
+  /* bond counters */
+  .sw-bctr {
+    position: absolute; bottom: 0.8rem; z-index: 5; pointer-events: none;
+    font-size: 0.55rem; color: var(--muted);
+  }
+  .sw-bctr-l { left: 0.9rem; }
+  .sw-bctr-r { right: 0.9rem; text-align: right; }
+  .sw-bval { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 400; display: block; }
+
+  /* scanlines */
+  .sw-scanlines {
+    position: absolute; inset: 0; pointer-events: none; z-index: 2;
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+    opacity: 0.6;
+  }
+
+  /* corner marks */
+  .sw-corner { position: absolute; width: 10px; height: 10px; z-index: 6; pointer-events:none; }
+  .sw-tl { top:0;left:0; border-top:1px solid var(--teal); border-left:1px solid var(--teal); }
+  .sw-tr { top:0;right:0; border-top:1px solid var(--teal); border-right:1px solid var(--teal); }
+  .sw-bl { bottom:0;left:0; border-bottom:1px solid rgba(0,229,200,0.25); border-left:1px solid rgba(0,229,200,0.25); }
+  .sw-br { bottom:0;right:0; border-bottom:1px solid rgba(0,229,200,0.25); border-right:1px solid rgba(0,229,200,0.25); }
+
+  /* step buttons */
+  .sw-controls { flex-shrink: 0; background: rgba(8,15,28,0.95); border-top: 1px solid rgba(255,255,255,0.07); }
+  .sw-steps { display: flex; align-items: stretch; height: 56px; }
+  .sw-step-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    gap: 0.6rem; background: transparent; border: none;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    cursor: pointer; color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.07em; text-transform: uppercase;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .sw-step-btn:last-child { border-right: none; }
+  .sw-step-btn::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px; background: var(--teal);
+    transform: scaleX(0); transition: transform 0.3s;
+  }
+  .sw-step-btn:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+  .sw-step-btn.active { color: var(--text); background: rgba(0,229,200,0.04); }
+  .sw-step-btn.active::after { transform: scaleX(1); }
+  .sw-step-icon { font-size: 0.95rem; }
+  .sw-step-num {
+    position: absolute; top: 0.4rem; left: 0.6rem;
+    font-size: 0.42rem; color: var(--muted);
+  }
+
+  /* info strip */
+  .sw-info {
+    border-top: 1px solid rgba(255,255,255,0.07);
+    display: grid; grid-template-columns: 1fr 2fr 1fr;
+    height: 72px;
+  }
+  .sw-info-cell {
+    padding: 0.6rem 1.1rem;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    display: flex; flex-direction: column; justify-content: center; gap: 0.25rem;
+  }
+  .sw-info-cell:last-child { border-right: none; }
+  .sw-info-lbl { font-size: 0.47rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
+  .sw-info-val { font-size: 0.7rem; color: var(--text); line-height: 1.5; }
+  .sw-info-val.c-teal { color: var(--teal); }
+  .sw-wbar-bg { height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-top: 0.25rem; }
+  .sw-wbar-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg,#4db8ff,#0080ff);
+    transition: width 1.5s cubic-bezier(0.4,0,0.2,1); width: 0%;
+  }
+
+  /* =====================================================
+     PARAMETER SIMULATOR (ps-*) — Section 09
+  ===================================================== */
+  #param-sim { flex-direction: column; align-items: flex-start; }
+  #param-sim .ps-intro { max-width: 1200px; margin: 0 auto; width: 100%; }
+
+  .ps-panel {
+    width: 100%; margin-top: 2.5rem;
+    display: grid; grid-template-columns: 280px 1fr 300px;
+    gap: 0;
+    border: 1px solid rgba(0,229,200,0.18);
+    border-radius: 4px; overflow: hidden;
+    min-height: 600px;
+    background: #030810;
+  }
+
+  /* LEFT: Controls */
+  .ps-controls {
+    background: rgba(6,12,24,0.95);
+    border-right: 1px solid rgba(0,229,200,0.1);
+    padding: 1.2rem;
+    display: flex; flex-direction: column; gap: 0;
+    overflow-y: auto;
+  }
+  .ps-ctrl-title {
+    font-size: 0.52rem; color: var(--teal); letter-spacing: 0.2em;
+    text-transform: uppercase; margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(0,229,200,0.1); padding-bottom: 0.6rem;
+  }
+  .ps-ctrl-group {
+    margin-bottom: 1.1rem; padding-bottom: 1.1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .ps-ctrl-group:last-child { border-bottom: none; margin-bottom: 0; }
+  .ps-ctrl-label {
+    font-size: 0.6rem; color: var(--text); margin-bottom: 0.55rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .ps-ctrl-label span { color: var(--teal); font-size: 0.65rem; font-weight: 500; }
+  .ps-ctrl-sublabel { font-size: 0.5rem; color: var(--muted); margin-bottom: 0.5rem; }
+
+  /* Range slider inside ps */
+  .ps-range {
+    -webkit-appearance: none; width: 100%; height: 3px;
+    border-radius: 2px; outline: none; cursor: pointer;
+    background: rgba(255,255,255,0.08);
+  }
+  .ps-range::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--bg);
+    border: 2px solid var(--teal); cursor: pointer;
+  }
+
+  /* Toggle switch */
+  .ps-toggle-wrap { display: flex; align-items: center; gap: 0.7rem; }
+  .ps-toggle {
+    position: relative; width: 36px; height: 18px;
+    background: rgba(255,255,255,0.08); border-radius: 9px;
+    cursor: pointer; transition: background 0.3s; flex-shrink: 0;
+  }
+  .ps-toggle.on { background: rgba(0,229,200,0.3); }
+  .ps-toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--muted); transition: all 0.3s;
+  }
+  .ps-toggle.on::after { left: 20px; background: var(--teal); }
+  .ps-toggle-label { font-size: 0.58rem; color: var(--muted); }
+
+  /* Segmented control */
+  .ps-seg { display: flex; gap: 2px; }
+  .ps-seg-btn {
+    flex: 1; padding: 0.3rem 0;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 2px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.52rem;
+    color: var(--muted); text-align: center;
+    transition: all 0.2s;
+  }
+  .ps-seg-btn:hover { color: var(--text); background: rgba(255,255,255,0.07); }
+  .ps-seg-btn.active { background: rgba(0,229,200,0.12); color: var(--teal); border-color: rgba(0,229,200,0.3); }
+
+  /* Run button */
+  .ps-run-btn {
+    width: 100%; padding: 0.7rem;
+    background: rgba(0,229,200,0.1); color: var(--teal);
+    border: 1px solid rgba(0,229,200,0.3); border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
+  }
+  .ps-run-btn:hover { background: rgba(0,229,200,0.2); }
+  .ps-run-btn.running { color: #ffb347; border-color: rgba(255,179,71,0.4); background: rgba(255,179,71,0.08); animation: psBtnPulse 1s ease-in-out infinite; }
+  @keyframes psBtnPulse { 0%,100%{opacity:1;}50%{opacity:0.6;} }
+
+  /* CENTER: Molecular canvas */
+  .ps-canvas-wrap {
+    position: relative; overflow: hidden;
+    background: #030810;
+    display: flex; flex-direction: column;
+  }
+  #ps-canvas { width: 100%; flex: 1; display: block; }
+  .ps-canvas-hdr {
+    padding: 0.6rem 1rem; font-size: 0.52rem; color: var(--muted);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(6,12,24,0.8);
+  }
+  .ps-step-indicators {
+    display: flex; gap: 0.5rem; align-items: center;
+  }
+  .ps-step-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); transition: background 0.4s;
+  }
+  .ps-step-dot.active { background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+  .ps-step-label { font-size: 0.5rem; color: var(--teal); min-width: 120px; text-align: right; }
+
+  /* RIGHT: Outputs */
+  .ps-outputs {
+    background: rgba(6,12,24,0.95);
+    border-left: 1px solid rgba(0,229,200,0.1);
+    padding: 1.1rem;
+    display: flex; flex-direction: column; gap: 1rem;
+    overflow-y: auto;
+  }
+  .ps-out-title {
+    font-size: 0.52rem; color: var(--teal); letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(0,229,200,0.1); padding-bottom: 0.6rem;
+  }
+  .ps-out-section { margin-bottom: 0.2rem; }
+  .ps-out-sec-label { font-size: 0.5rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem; }
+
+  /* Strength gauge */
+  #ps-gauge-canvas { width: 100%; height: 110px; display: block; }
+
+  /* Strength readout */
+  .ps-strength-readout {
+    text-align: center; margin-top: -0.3rem;
+  }
+  .ps-strength-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 300; color: var(--teal);
+    transition: color 0.5s;
+  }
+  .ps-strength-unit { font-size: 0.6rem; color: var(--muted); }
+  .ps-strength-badge {
+    display: inline-block; margin-top: 0.3rem; padding: 0.15rem 0.6rem;
+    border-radius: 2px; font-size: 0.58rem; border: 1px solid;
+    transition: all 0.4s;
+  }
+
+  /* Bond type indicators */
+  .ps-bonds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+  .ps-bond-chip {
+    padding: 0.35rem 0.5rem;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 3px; font-size: 0.5rem; color: var(--muted);
+    display: flex; align-items: center; gap: 0.3rem;
+    transition: all 0.4s;
+  }
+  .ps-bond-chip.active { border-color: rgba(0,229,200,0.3); color: var(--text); background: rgba(0,229,200,0.05); }
+  .ps-bond-chip.active.amber { border-color: rgba(255,179,71,0.3); background: rgba(255,179,71,0.05); color: #ffb347; }
+  .ps-bond-chip.active.violet { border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.05); color: #a78bfa; }
+  .ps-bond-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  /* Failure mode */
+  .ps-failure {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgba(255,69,96,0.2); border-radius: 3px;
+    background: rgba(255,69,96,0.05);
+    font-size: 0.58rem; color: #ff6b6b; line-height: 1.6;
+    display: none;
+  }
+  .ps-failure.show { display: block; }
+  .ps-success {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgba(6,214,160,0.2); border-radius: 3px;
+    background: rgba(6,214,160,0.05);
+    font-size: 0.58rem; color: #06d6a0; line-height: 1.6;
+  }
+
+  /* Mini graphs */
+  #ps-graph-ph, #ps-graph-dopa { width: 100%; height: 80px; display: block; border-radius: 2px; }
+
+  /* Biology section — plain 3D canvas, no photo */
+  /* pH molecule stage */
+  .ph-stage-wrap { position: relative; }
+  .ph-molecule-label {
+    position: absolute; bottom: 0.5rem; left: 0.5rem; z-index: 5;
+    font-size: 0.52rem; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.25rem 0.6rem; border-radius: 2px;
+    border: 1px solid; transition: all 0.5s;
+  }
+  .ph-molecule-label.active  { color: #00e5c8; border-color: rgba(0,229,200,0.4); background: rgba(0,229,200,0.08); }
+  .ph-molecule-label.partial { color: #ffb347; border-color: rgba(255,179,71,0.4); background: rgba(255,179,71,0.08); }
+  .ph-molecule-label.oxidised{ color: #ff4560; border-color: rgba(255,69,96,0.4);  background: rgba(255,69,96,0.08);  }
+
+  /* Gradient text on key titles */
+  #biology .section-title {
+    background: linear-gradient(135deg, #4db8ff 0%, #00e5c8 50%, #06d6a0 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  #dopa .section-title {
+    background: linear-gradient(135deg, #ffb347 0%, #ff9e6d 50%, #ffd700 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  #mechanism .section-title {
+    background: linear-gradient(135deg, #ffd700 0%, #ffb347 60%, #ff9e6d 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  #ph .section-title {
+    background: linear-gradient(135deg, #ff4d8f 0%, #ff6b6b 50%, #ffb347 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  #problem .section-title {
+    background: linear-gradient(135deg, #a78bfa 0%, #c084fc 50%, #818cf8 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  #applications .section-title {
+    background: linear-gradient(135deg, #06d6a0 0%, #00e5c8 50%, #4db8ff 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  /* Timeline dots: multicolor */
+  .timeline-item:nth-child(1)::before { background:#00e5c8; box-shadow: 0 0 8px #00e5c8; }
+  .timeline-item:nth-child(2)::before { background:#4db8ff; box-shadow: 0 0 8px #4db8ff; }
+  .timeline-item:nth-child(3)::before { background:#a78bfa; box-shadow: 0 0 8px #a78bfa; }
+  .timeline-item:nth-child(4)::before { background:#ffb347; box-shadow: 0 0 8px #ffb347; }
+  .timeline-item:nth-child(5)::before { background:#ff6b6b; box-shadow: 0 0 8px #ff6b6b; }
+  .timeline-item:nth-child(6)::before { background:#06d6a0; box-shadow: 0 0 8px #06d6a0; }
+
+  /* Bond strength fills: colored */
+  #dopa .bond-strength-fill:nth-child(1) { background: var(--teal); }
+
+  /* Section number colored per section */
+  #biology  .section-number { color: #4db8ff; }
+  #dopa     .section-number { color: var(--amber); }
+  #mechanism .section-number { color: var(--gold); }
+  #ph       .section-number { color: var(--rose); }
+  #applications .section-number { color: var(--emerald); }
+  #simulator .section-number { color: var(--coral); }
+
+  /* Nav logo multicolor */
+  .nav-logo {
+    background: linear-gradient(90deg, #00e5c8, #4db8ff, #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  /* Tags colored variants */
+  .tag:nth-child(even) { border-color: rgba(0,184,255,0.35); color: #4db8ff; }
+  .tag.amber { border-color: rgba(255,179,71,0.4); color: var(--amber); }
+
+  /* Scroll line: multicolor */
+  .scroll-line {
+    background: linear-gradient(to bottom, #00e5c8, #4db8ff, transparent) !important;
+  }
+
+  /* Footer gradient border */
+  footer {
+    border-top: 1px solid transparent;
+    border-image: linear-gradient(90deg, var(--teal), var(--coral), var(--violet)) 1;
+  }
+
+  /* Step item active: color per step */
+  #mechanism-steps .step-item:nth-child(1).active { border-color: var(--cyan); }
+  #mechanism-steps .step-item:nth-child(2).active { border-color: var(--amber); }
+  #mechanism-steps .step-item:nth-child(3).active { border-color: var(--teal); }
+  #mechanism-steps .step-item:nth-child(4).active { border-color: var(--gold); }
+
+
+  /* Simulator Pro — live strength HUD inside canvas */
+  .ps-canvas-wrap { position: relative; }
+  .ps-strength-hud {
+    position: absolute; right: 1rem; top: 2.5rem; z-index: 10;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem;
+    pointer-events: none;
+  }
+  .ps-hud-label { font-size: 0.48rem; color: rgba(200,230,240,0.5); letter-spacing: 0.15em; text-transform: uppercase; }
+  .ps-hud-val {
+    font-family: 'Cormorant Garamond', serif; font-size: 2.4rem; font-weight: 300;
+    line-height: 1; transition: color 0.5s;
+  }
+  .ps-hud-unit { font-size: 0.55rem; color: rgba(200,230,240,0.4); }
+  .ps-hud-bar-bg {
+    width: 120px; height: 5px; background: rgba(255,255,255,0.07);
+    border-radius: 3px; overflow: hidden;
+  }
+  .ps-hud-bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.8s cubic-bezier(0.16,1,0.3,1), background 0.5s;
+    width: 0%;
+  }
+  .ps-hud-status {
+    font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.2rem 0.55rem; border-radius: 2px; border: 1px solid;
+    transition: all 0.5s;
+  }
+
+  /* Strength bar at bottom of canvas (wide) */
+  .ps-strength-bar-full {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+    padding: 0.6rem 1rem;
+    background: rgba(3,8,16,0.75); backdrop-filter: blur(6px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; gap: 1rem; pointer-events: none;
+  }
+  .ps-sbar-label { font-size: 0.5rem; color: var(--muted); letter-spacing: 0.15em; white-space: nowrap; }
+  .ps-sbar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+  .ps-sbar-fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, #ff4560 0%, #ffb347 40%, #06d6a0 80%, #00e5c8 100%);
+    transition: width 0.9s cubic-bezier(0.16,1,0.3,1);
+    width: 0%;
+  }
+  .ps-sbar-val {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 300;
+    white-space: nowrap; min-width: 70px; text-align: right;
+    transition: color 0.5s;
+  }
+  .ps-sbar-badge {
+    font-size: 0.55rem; padding: 0.15rem 0.5rem; border: 1px solid;
+    border-radius: 2px; white-space: nowrap; transition: all 0.5s;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Mussel Adhesion</div>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#simulator" style="color:var(--teal)">⚗ Simulator</a></li>
+    <li><a href="#biology">Biology</a></li>
+    <li><a href="#dopa">DOPA</a></li>
+    <li><a href="#mechanism">Mechanism</a></li>
+    <li><a href="#ph">pH Control</a></li>
+    <li><a href="#applications">Applications</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+    <li><a href="#param-sim" style="color:var(--amber)">⚗ Simulator Pro</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <!-- Real underwater mussel photo background -->
+  <!-- Real mussel photo: Mytilus in intertidal zone, Cornwall UK (Wikimedia Commons CC-BY-SA) -->
+  <img class="hero-bg-photo"
+    src="https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file/CornishMussels.JPG"
+    onerror="this.src='https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file/20180624_mussels_Rerik_DSC09782_PtrQs.jpg'"
+    alt="Mytilus mussels in intertidal zone, Cornwall, England">
+  <div class="hero-gradient-overlay"></div>
+
+  <!-- Three.js particle canvas -->
+  <canvas id="hero-canvas"></canvas>
+
+  <!-- Animated wave at bottom -->
+  <div class="hero-wave">
+    <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#0066cc;stop-opacity:0.3"/>
+          <stop offset="50%" style="stop-color:#00e5c8;stop-opacity:0.2"/>
+          <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:0.3"/>
+        </linearGradient>
+      </defs>
+      <path d="M0,60 C240,100 480,20 720,60 C960,100 1200,20 1440,60 L1440,120 L0,120 Z"
+        fill="url(#waveGrad)">
+        <animateTransform attributeName="transform" type="translate" from="0,0" to="-720,0"
+          dur="8s" repeatCount="indefinite"/>
+      </path>
+      <path d="M720,60 C960,100 1200,20 1440,60 C1680,100 1920,20 2160,60 L2160,120 L720,120 Z"
+        fill="url(#waveGrad)" opacity="0.6">
+        <animateTransform attributeName="transform" type="translate" from="0,0" to="-720,0"
+          dur="8s" repeatCount="indefinite"/>
+      </path>
+    </svg>
+  </div>
+
+  <div class="hero-content">
+    <!-- Topic badges -->
+    <div class="hero-badge-row">
+      <span class="hero-badge hb-teal">Biomimicry</span>
+      <span class="hero-badge hb-blue">Marine Biology</span>
+      <span class="hero-badge hb-coral">Biomedical Engineering</span>
+    </div>
+
+    <h1 class="hero-title">
+      Mussel-Inspired
+      <span class="hero-title-line2">Adhesion</span>
+    </h1>
+
+    <p class="hero-sub">
+      How a marine organism evolved nature's most powerful underwater glue —<br>
+      and what it means for the future of surgical medicine.
+    </p>
+
+    <!-- Group credit -->
+    <div class="hero-group">
+      <div class="hero-group-label">SVKM's NMIMS Mumbai · B.Tech Project</div>
+      <div class="hero-group-names">
+        <span class="hero-name">Kanak Gupta</span>
+        <span class="hero-name">Nandini Goyal</span>
+        <span class="hero-name">Shubham Jatania</span>
+        <span class="hero-name">Kabir Goswami</span>
+      </div>
+      
+    </div>
+
+    <div class="scroll-cue">
+      <span>Scroll to explore</span>
+      <div class="scroll-line"></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="orb" style="width:400px;height:400px;background:var(--violet);right:-100px;top:0;"></div>
+  <span class="section-number">01 — Problem</span>
+  <div class="two-col">
+    <div>
+      <p class="section-eyebrow">The Challenge</p>
+      <h2 class="section-title">Why water breaks everything</h2>
+      <p class="section-body">Water creates a hydration layer on surfaces, displacing adhesive molecules before they can form bonds. Electrostatic forces drop drastically. Most synthetic adhesives simply fail.</p>
+      <p class="section-body">Current surgical methods — sutures, staples, metal wires — cause tissue damage, require removal, and are impossible in delicate internal areas. Yet ~114 million surgeries per year depend on them.</p>
+      <div class="tag-list">
+        <span class="tag">Tissue Damage</span>
+        <span class="tag amber">Hydration Barrier</span>
+        <span class="tag violet">Failed Adhesives</span>
+      </div>
+    </div>
+    <div>
+      <div class="stat-item">
+        <div class="stat-label">Adhesion loss in wet conditions (conventional glues)</div>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" data-target="92"></div></div>
+        <div class="stat-val">~92% loss</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Annual surgeries using sutures/staples</div>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" data-target="85" style="background:linear-gradient(90deg,var(--violet),#c084fc)"></div></div>
+        <div class="stat-val">114 million / year</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Global wound closure market</div>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" data-target="70" style="background:linear-gradient(90deg,var(--amber),#ffd700)"></div></div>
+        <div class="stat-val">$14 billion (2018)</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Body tissue water content</div>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" data-target="70" style="background:linear-gradient(90deg,var(--cyan),var(--teal))"></div></div>
+        <div class="stat-val">~70%</div>
+      </div>
+      <p class="section-body" style="margin-top:1.5rem; font-size:0.75rem;">👉 The body is essentially underwater. Any successful surgical adhesive must work in a fully aqueous environment.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SIMULATOR -->
+<section id="simulator">
+  <span class="section-number" style="color:var(--coral)">02 — Simulator</span>
+  <div class="sim-intro">
+    <p class="section-eyebrow">Interactive Demo</p>
+    <h2 class="section-title">Adhesion <em style="font-style:italic;color:var(--teal)">vs</em> Water</h2>
+    <p class="section-body" style="max-width:680px;">See exactly why normal glues fail in wet environments — and how DOPA-based mussel adhesive overcomes the hydration barrier. Toggle between dry, wet, and molecular-scale views.</p>
+  </div>
+
+  <!-- SIMULATOR WIDGET -->
+  <div class="sim-widget">
+    <!-- Header bar -->
+    <div class="sw-header">
+      <div class="sw-hdr-left">
+        <span class="sw-tag">Live Simulation</span>
+        <span class="sw-title">Normal Adhesive <em>vs</em> DOPA Adhesive</span>
+      </div>
+      <div class="sw-legend">
+        <div class="sw-leg-item"><div class="sw-leg-dot" style="background:#4db8ff"></div>Water (H₂O)</div>
+        <div class="sw-leg-item"><div class="sw-leg-dot" style="background:#ff6b35"></div>Normal Adhesive</div>
+        <div class="sw-leg-item"><div class="sw-leg-dot" style="background:#00e5c8"></div>DOPA Molecule</div>
+        <div class="sw-leg-item"><div class="sw-leg-dot" style="background:#ffd166;border-radius:0"></div>Active Bond</div>
+      </div>
+      <button id="s2-autoplay-btn" onclick="s2ToggleAutoplay()">▶ Auto-Play</button>
+    </div>
+
+    <!-- Canvas area -->
+    <div class="sw-canvas-area" id="s2-canvas-area">
+      <div class="sw-scanlines"></div>
+      <div class="sw-corner sw-tl"></div>
+      <div class="sw-corner sw-tr"></div>
+      <div class="sw-corner sw-bl"></div>
+      <div class="sw-corner sw-br"></div>
+
+      <div class="sw-col-label sw-col-label-left">
+        <div class="sw-ldot" style="background:#ff6b35"></div>
+        <span class="sw-ltext" style="color:#ff6b35">Normal Adhesive</span>
+      </div>
+      <div class="sw-col-label sw-col-label-right">
+        <div class="sw-ldot" style="background:#00e5c8"></div>
+        <span class="sw-ltext" style="color:#00e5c8">DOPA-Based Adhesive</span>
+      </div>
+
+      <div class="sw-status bonded sw-status-left" id="s2-status-left">
+        <div class="sw-sdot pulse"></div><span id="s2-status-left-text">BONDED</span>
+      </div>
+      <div class="sw-status bonded sw-status-right" id="s2-status-right">
+        <div class="sw-sdot pulse"></div><span id="s2-status-right-text">BONDED</span>
+      </div>
+
+      <div class="sw-divider"></div>
+
+      <div class="sw-bctr sw-bctr-l">
+        <span class="sw-bval" id="s2-bonds-left">8</span>active bonds
+      </div>
+      <div class="sw-bctr sw-bctr-r">
+        <span class="sw-bval" id="s2-bonds-right" style="color:var(--teal)">8</span>active bonds
+      </div>
+
+      <canvas id="s2-sim-canvas"></canvas>
+    </div>
+
+    <!-- Step controls -->
+    <div class="sw-controls">
+      <div class="sw-steps">
+        <button class="sw-step-btn active" id="s2-btn-0" onclick="s2SetStep(0)">
+          <span class="sw-step-num">01</span>
+          <span class="sw-step-icon">☀️</span>
+          <span>Dry Surface</span>
+        </button>
+        <button class="sw-step-btn" id="s2-btn-1" onclick="s2SetStep(1)">
+          <span class="sw-step-num">02</span>
+          <span class="sw-step-icon">💧</span>
+          <span>Water Introduced</span>
+        </button>
+        <button class="sw-step-btn" id="s2-btn-2" onclick="s2SetStep(2)">
+          <span class="sw-step-num">03</span>
+          <span class="sw-step-icon">🔬</span>
+          <span>Molecular View</span>
+        </button>
+      </div>
+      <div class="sw-info">
+        <div class="sw-info-cell">
+          <span class="sw-info-lbl">Water Level</span>
+          <div class="sw-wbar-bg"><div class="sw-wbar-fill" id="s2-water-bar"></div></div>
+          <span class="sw-info-val" id="s2-water-pct" style="font-size:0.62rem">0% — Dry conditions</span>
+        </div>
+        <div class="sw-info-cell">
+          <span class="sw-info-lbl">Observation</span>
+          <span class="sw-info-val" id="s2-info-text">Both adhesives bond easily on a dry surface. No competing forces present.</span>
+        </div>
+        <div class="sw-info-cell">
+          <span class="sw-info-lbl">Key Principle</span>
+          <span class="sw-info-val c-teal" id="s2-principle-text">Dry adhesion works for all materials.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- BIOLOGY -->
+<section id="biology">
+  <div class="orb" style="width:500px;height:500px;background:var(--cyan);left:-150px;bottom:-100px;"></div>
+  <span class="section-number">03 — Biology</span>
+  <div class="two-col">
+    <div class="sim-box" style="min-height:420px;">
+      <canvas id="mussel-canvas"></canvas>
+      <div class="sim-label">3D — Byssus Thread Structure · Drag to rotate</div>
+    </div>
+    <div>
+      <p class="section-eyebrow">Marine Biology</p>
+      <h2 class="section-title">Meet the mussel</h2>
+      <p class="section-body">Mytilus mussels survive in violent wave-swept shores by producing the byssus — a remarkable bundle of 50–100 protein threads, each terminating in an adhesive plaque attached firmly to rock.</p>
+      <p class="section-body">These plaques withstand ~6 MPa of stress per plaque — in continuously wet, salt-water conditions. No synthetic adhesive comes close to this performance profile.</p>
+      <div class="step-flow" style="margin-top:1.5rem;">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>Byssus Thread</strong>Collagen-like fibers with gradient stiffness — stiff near plaque, elastic near body. Prevents snapping.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Adhesive Plaque</strong>Dense protein deposit at thread tip. Rich in Mussel Foot Proteins (Mfp-3, Mfp-5, Mfp-6).</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>Foot Organ</strong>Secretes proteins in controlled sequence. Acts as biological adhesive dispenser.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OCEAN STRIP -->
+<div class="ocean-strip">
+  <!-- Coral reef at Palmyra Atoll, USFWS (Public Domain) -->
+  <img src="https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file/Coral_reef_at_palmyra.jpg"
+    onerror="this.src='https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file/Silas_Baisch_k39RGHmLoV8_unsplash.jpg'"
+    alt="Coral reef underwater ocean">
+  <div class="ocean-strip-overlay"></div>
+  <div class="ocean-strip-text">"The sea knows no boundaries — and neither do its secrets"</div>
+</div>
+
+<!-- DOPA -->
+<section id="dopa">
+  <span class="section-number">03 — Chemistry</span>
+  <div class="two-col">
+    <div>
+      <p class="section-eyebrow">The Secret Molecule</p>
+      <h2 class="section-title">DOPA — nature's universal glue</h2>
+      <p class="section-body"><strong style="color:var(--text)">3,4-dihydroxyphenylalanine</strong> is an amino acid found in Mussel Foot Proteins. Its catechol ring forms an extraordinary range of chemical bonds — hydrogen, covalent, metal-coordination, π–π, and electrostatic — allowing it to adhere to virtually any surface.</p>
+      <div class="bond-grid" style="margin-top:1.5rem;">
+        <div class="bond-item">
+          <div class="bond-name">Hydrogen Bonds</div>
+          <div class="bond-desc">Catechol OH groups form reversible bonds with surface oxides. Fast, flexible attachment.</div>
+          <div class="bond-strength"><div class="bond-strength-fill" style="width:65%;background:var(--teal);"></div></div>
+        </div>
+        <div class="bond-item">
+          <div class="bond-name">Covalent Bonds</div>
+          <div class="bond-desc">Oxidized DOPA (dopaquinone) reacts with surface amines. Permanent, strong bonds.</div>
+          <div class="bond-strength"><div class="bond-strength-fill" style="width:95%;background:var(--amber);"></div></div>
+        </div>
+        <div class="bond-item">
+          <div class="bond-name">Metal Coordination</div>
+          <div class="bond-desc">Catechol chelates Fe³⁺, Ti⁴⁺, and other metals. Used on implants and marine surfaces.</div>
+          <div class="bond-strength"><div class="bond-strength-fill" style="width:80%;background:var(--violet);"></div></div>
+        </div>
+        <div class="bond-item">
+          <div class="bond-name">π–π Stacking</div>
+          <div class="bond-desc">Aromatic rings interact with graphitic or organic surfaces. Key for carbon materials.</div>
+          <div class="bond-strength"><div class="bond-strength-fill" style="width:55%;background:var(--cyan);"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sim-box" style="min-height:420px;">
+      <canvas id="dopa-canvas"></canvas>
+      <div class="sim-label">Interactive — DOPA Molecule · Drag to rotate</div>
+    </div>
+  </div>
+</section>
+
+<!-- MECHANISM -->
+<section id="mechanism">
+  <div class="orb" style="width:400px;height:400px;background:var(--amber);right:-100px;bottom:0;opacity:0.08;"></div>
+  <span class="section-number">04 — Mechanism</span>
+  <div class="two-col">
+    <div class="sim-box" style="min-height:440px;">
+      <canvas id="mechanism-canvas"></canvas>
+      <div class="sim-label" id="mech-label">Step 1 — Surface Preparation</div>
+    </div>
+    <div>
+      <p class="section-eyebrow">Step-by-Step Process</p>
+      <h2 class="section-title">How adhesion actually happens</h2>
+      <p class="section-body">Click each step to animate the corresponding process in the simulation.</p>
+      <div class="step-flow" id="mechanism-steps">
+        <div class="step-item active" data-step="0" onclick="setMechStep(0)">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>Surface Preparation</strong>Mussel foot makes contact. Hydrophobic amino acids and lysine residues physically displace the water hydration layer from the surface.</div>
+        </div>
+        <div class="step-item" data-step="1" onclick="setMechStep(1)">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Protein Secretion</strong>Mfp-3 and Mfp-5 are released at low pH (≈5). DOPA-rich proteins flood the interface in a coacervate droplet form.</div>
+        </div>
+        <div class="step-item" data-step="2" onclick="setMechStep(2)">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>DOPA Bonding</strong>DOPA catechol groups form hydrogen bonds and coordination bonds with surface. Direct molecular contact achieved.</div>
+        </div>
+        <div class="step-item" data-step="3" onclick="setMechStep(3)">
+          <div class="step-num">4</div>
+          <div class="step-text"><strong>Crosslinking & Hardening</strong>Mfp-6 mediates redox control. Proteins crosslink covalently → plaque hardens into strong, permanent adhesive.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- pH CONTROL -->
+<section id="ph">
+  <span class="section-number">05 — pH Control</span>
+  <div class="two-col">
+    <div>
+      <p class="section-eyebrow">Critical Variable</p>
+      <h2 class="section-title">The pH factor</h2>
+      <p class="section-body">The oxidation state of DOPA — and therefore its adhesive strength — is governed by pH. The mussel controls this microenvironment around the plaque using specific proteins.</p>
+      <div class="ph-control">
+        <div style="font-size:0.75rem; color:var(--muted); margin-bottom:0.5rem;">Drag the slider to change pH</div>
+        <div class="ph-slider-wrap">
+          <span style="font-size:0.65rem;color:var(--teal)">Acidic</span>
+          <input type="range" id="ph-slider" min="3" max="9" step="0.1" value="5">
+          <span style="font-size:0.65rem;color:#ff4444">Alkaline</span>
+          <div class="ph-display" id="ph-display">5.0</div>
+        </div>
+        <div class="ph-status" id="ph-status">
+          <span class="status-badge" id="ph-badge">DOPA Active</span><br><br>
+          At pH 5.0: DOPA remains in catechol form. Maximum hydrogen bonding and coordination. <strong style="color:var(--teal)">Adhesion is strongest.</strong>
+        </div>
+      </div>
+    </div>
+    <div class="sim-box ph-stage-wrap" style="min-height:400px;">
+      <canvas id="ph-canvas"></canvas>
+      <div class="ph-molecule-label active" id="ph-mol-label">Catechol — Active</div>
+      <div class="sim-label">Live — Drag slider to oxidise DOPA</div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLICATIONS -->
+<section id="applications">
+  <div style="width:100%;max-width:1200px;margin:0 auto;">
+    <span class="section-number">06 — Applications</span>
+    <p class="section-eyebrow">Real-World Impact</p>
+    <h2 class="section-title" style="max-width:500px;margin-bottom:3rem;">From ocean to operating theatre</h2>
+    <div class="three-col">
+      <div class="card">
+        <span class="card-icon">🔬</span>
+        <div class="card-title">Tissue Adhesives</div>
+        <div class="card-body">Mussel-inspired polymers achieve up to 40 kPa in wet tissue conditions — matching or exceeding biological tissue strength. Replaces sutures in soft organ repair.</div>
+        <div class="tag-list"><span class="tag">Surgery</span><span class="tag">Soft Tissue</span></div>
+      </div>
+      <div class="card">
+        <span class="card-icon">💊</span>
+        <div class="card-title">Drug Delivery</div>
+        <div class="card-body">DOPA-functionalized nanoparticles bind to specific tissue surfaces, enabling targeted, sustained-release drug delivery at wound sites without systemic exposure.</div>
+        <div class="tag-list"><span class="tag amber">Nanotech</span><span class="tag amber">Precision</span></div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🦴</span>
+        <div class="card-title">Implant Coatings</div>
+        <div class="card-body">Metal coordination bonds between DOPA and titanium allow permanent coating of implants. Improves osseointegration and reduces rejection rates.</div>
+        <div class="tag-list"><span class="tag violet">Implants</span><span class="tag violet">Biocompat.</span></div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🌊</span>
+        <div class="card-title">Underwater Repair</div>
+        <div class="card-body">Marine-grade adhesives based on mussel proteins for ship hull repair, pipeline sealing, and underwater construction — no surface drying required.</div>
+        <div class="tag-list"><span class="tag">Marine Eng.</span><span class="tag">Industrial</span></div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🧬</span>
+        <div class="card-title">Tissue Engineering</div>
+        <div class="card-body">Scaffold materials coated with DOPA-containing polymers promote cell adhesion, proliferation, and tissue ingrowth — critical for lab-grown organ fabrication.</div>
+        <div class="tag-list"><span class="tag amber">Scaffolds</span><span class="tag amber">Regeneration</span></div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔄</span>
+        <div class="card-title">Self-Healing Materials</div>
+        <div class="card-body">Reversible DOPA-Fe³⁺ coordination enables materials that autonomously repair cracks and breaks — promising for flexible electronics and protective coatings.</div>
+        <div class="tag-list"><span class="tag violet">Future Tech</span><span class="tag violet">Smart Mat.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline">
+  <div class="two-col" style="max-width:1200px;margin:0 auto;">
+    <div>
+      <span class="section-number" style="position:relative;top:auto;left:auto;display:block;margin-bottom:1rem;">07 — History</span>
+      <p class="section-eyebrow">Research Timeline</p>
+      <h2 class="section-title">The journey of discovery</h2>
+      <div class="timeline" style="margin-top:2rem;">
+        <div class="timeline-item">
+          <div class="timeline-year">1940s</div>
+          <div class="timeline-event">First synthetic adhesives developed. Epoxy resins and cyanoacrylates introduced — but none work in wet conditions.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">1970s</div>
+          <div class="timeline-event">Concept of bioadhesion introduced. Researchers begin studying marine organisms for adhesion clues.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">1987</div>
+          <div class="timeline-event">Mussel foot proteins first isolated and characterized. Unusual amino acid composition noted.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2000s</div>
+          <div class="timeline-event">DOPA identified as the critical adhesive residue. Role of catechol chemistry in wet bonding established.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2010s</div>
+          <div class="timeline-event">First synthetic mussel-inspired polymers (polydopamine). Industrial coatings, biomedical adhesives enter development pipelines.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">Present</div>
+          <div class="timeline-event">Clinical trials for mussel-inspired tissue adhesives underway. Smart, pH-responsive and self-healing variants being engineered.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="section-eyebrow" style="margin-bottom:1rem;">Limitations & Future</p>
+      <h2 class="section-title">Challenges ahead</h2>
+      <p class="section-body">Despite extraordinary promise, several hurdles remain before mussel-inspired adhesives reach widespread clinical use.</p>
+      <div class="step-flow" style="margin-bottom:2rem;">
+        <div class="step-item">
+          <div class="step-num">⚠</div>
+          <div class="step-text"><strong>Oxidation Problem</strong>DOPA oxidizes at high pH → loses adhesive power. Requires precise pH management in formulations.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">⚠</div>
+          <div class="step-text"><strong>Synthesis Complexity</strong>Multi-protein interactions are not fully understood. Replicating all six Mfps synthetically is enormously complex.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">⚠</div>
+          <div class="step-text"><strong>Scale-up Cost</strong>Current production of DOPA-rich polymers is expensive. Industrial-scale manufacturing remains challenging.</div>
+        </div>
+      </div>
+      <p class="section-eyebrow" style="margin-top:2rem;">Future Directions</p>
+      <div class="tag-list">
+        <span class="tag">pH-Responsive Smart Adhesives</span>
+        <span class="tag amber">Nanotechnology Integration</span>
+        <span class="tag violet">Self-Healing Hydrogels</span>
+        <span class="tag">Surgical Glue Strips</span>
+        <span class="tag amber">Bionic Implant Coatings</span>
+        <span class="tag violet">Wearable Biosensors</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- PARAM SIMULATOR -->
+<section id="param-sim">
+  <span class="section-number">09 — Advanced Simulator</span>
+  <div class="ps-intro">
+    <p class="section-eyebrow">Scientific Parameter Engine</p>
+    <h2 class="section-title">DOPA Adhesion — Variable Simulator</h2>
+    <p class="section-body" style="max-width:680px;">Adjust all 7 scientific parameters and observe in real-time how they combine to determine adhesion strength, active bond types, and failure modes. Directly demonstrates the research paper findings.</p>
+  </div>
+
+  <!-- NAV link update handled separately -->
+  <div class="ps-panel">
+
+    <!-- ── LEFT: CONTROLS ── -->
+    <div class="ps-controls">
+      <div class="ps-ctrl-title">Input Parameters</div>
+
+      <!-- pH -->
+      <div class="ps-ctrl-group">
+        <div class="ps-ctrl-label">pH Level <span id="ps-ph-val">5.0</span></div>
+        <div class="ps-ctrl-sublabel">Low pH → DOPA active · High → oxidation</div>
+        <input type="range" class="ps-range" id="ps-ph" min="3" max="9" step="0.1" value="5"
+          oninput="psUpdate('pH', parseFloat(this.value)); document.getElementById('ps-ph-val').textContent=parseFloat(this.value).toFixed(1)">
+      </div>
+
+      <!-- Water -->
+      <div class="ps-ctrl-group">
+        <div class="ps-ctrl-label">Water / Hydration Layer</div>
+        <div class="ps-ctrl-sublabel">More water → more barrier to overcome</div>
+        <div class="ps-seg" id="ps-water-seg">
+          <button class="ps-seg-btn" onclick="psSegSel('water',0,this)">Low</button>
+          <button class="ps-seg-btn active" onclick="psSegSel('water',1,this)">Medium</button>
+          <button class="ps-seg-btn" onclick="psSegSel('water',2,this)">High</button>
+        </div>
+      </div>
+
+      <!-- DOPA Concentration -->
+      <div class="ps-ctrl-group">
+        <div class="ps-ctrl-label">DOPA Concentration</div>
+        <div class="ps-ctrl-sublabel">Higher → more bonding sites active</div>
+        <div class="ps-seg" id="ps-dopa-seg">
+          <button class="ps-seg-btn" onclick="psSegSel('dopa',0,this)">Low</button>
+          <button class="ps-seg-btn" onclick="psSegSel('dopa',1,this)">Medium</button>
+          <button class="ps-seg-btn active" onclick="psSegSel('dopa',2,this)">High</button>
+        </div>
+      </div>
+
+      <!-- Metal ions -->
+      <div class="ps-ctrl-group">
+        <div class="ps-ctrl-label">Metal Ions (Fe³⁺, Ca²⁺)</div>
+        <div class="ps-ctrl-sublabel">Enables coordination bonding + crosslinking</div>
+        <div class="ps-toggle-wrap">
+          <div class="ps-toggle on" id="ps-metal-toggle" onclick="psToggle('metalIons','ps-metal-toggle')"></div>
+          <span class="ps-toggle-label" id="ps-metal-label">Active — coordination bonds enabled</span>
+        </div>
+      </div>
+
+      <!-- Surface type -->
+      <div class="ps-ctrl-group">
+        <div class="ps-ctrl-label">Surface Type</div>
+        <div class="ps-ctrl-sublabel">Activates different bonding mechanisms</div>
+        <div class="ps-seg" id="ps-surf-seg">
+          <button class="ps-seg-btn" onclick="psSegSel('surface','hydrophobic',this)">Hydrophobic</button>
+          <button class="ps-seg-btn" onclick="psSegSel('surface','hydrophilic',this)">Hydrophilic</button>
+          <button class="ps-seg-btn active" onclick="psSegSel('surface','metalOxide',this)">Metal Oxide</button>
+        </div>
+      </div>
+
+      <!-- Oxidation level -->
+      <div class="ps-ctrl-group">
+        <div class="ps-ctrl-label">Oxidation Level <span id="ps-ox-val">1</span>/4</div>
+        <div class="ps-ctrl-sublabel">High → DOPA→quinone → weaker adhesion</div>
+        <input type="range" class="ps-range" id="ps-ox" min="0" max="4" step="1" value="1"
+          oninput="psUpdate('oxidation', parseInt(this.value)); document.getElementById('ps-ox-val').textContent=this.value">
+      </div>
+
+      <!-- Protein type -->
+      <div class="ps-ctrl-group">
+        <div class="ps-ctrl-label">Protein Type (Mfp)</div>
+        <div class="ps-ctrl-sublabel">Mfp-3/5: adhesion · Mfp-6: antioxidant</div>
+        <div class="ps-seg" id="ps-prot-seg">
+          <button class="ps-seg-btn" onclick="psSegSel('protein','mfp3',this)">Mfp-3</button>
+          <button class="ps-seg-btn active" onclick="psSegSel('protein','mfp5',this)">Mfp-5</button>
+          <button class="ps-seg-btn" onclick="psSegSel('protein','mfp6',this)">Mfp-6</button>
+        </div>
+      </div>
+
+      <button class="ps-run-btn" id="ps-run-btn" onclick="psRunSim()">▶ Run Simulation</button>
+    </div>
+
+    <!-- ── CENTER: MOLECULAR ANIMATION ── -->
+    <div class="ps-canvas-wrap">
+      <div class="ps-canvas-hdr">
+        <div>Molecular Interaction View</div>
+        <div style="display:flex;align-items:center;gap:0.8rem">
+          <div class="ps-step-indicators">
+            <div class="ps-step-dot active" id="psd-0"></div>
+            <div class="ps-step-dot" id="psd-1"></div>
+            <div class="ps-step-dot" id="psd-2"></div>
+            <div class="ps-step-dot" id="psd-3"></div>
+            <div class="ps-step-dot" id="psd-4"></div>
+          </div>
+          <span class="ps-step-label" id="ps-step-label">Ready</span>
+        </div>
+      </div>
+      <canvas id="ps-canvas"></canvas>
+
+      <!-- Live strength HUD (top-right of canvas) -->
+      <div class="ps-strength-hud">
+        <span class="ps-hud-label">Adhesion Strength</span>
+        <span class="ps-hud-val" id="pshud-val" style="color:#4a6478">—</span>
+        <span class="ps-hud-unit">kPa</span>
+        <div class="ps-hud-bar-bg">
+          <div class="ps-hud-bar-fill" id="pshud-bar" style="background:#00e5c8;width:0%"></div>
+        </div>
+        <span class="ps-hud-status" id="pshud-status"
+          style="color:#4a6478;border-color:rgba(74,100,120,0.3);background:rgba(74,100,120,0.05)">
+          Run simulation
+        </span>
+      </div>
+
+      <!-- Wide strength bar at canvas bottom -->
+      <div class="ps-strength-bar-full" id="ps-sbar-wrap">
+        <span class="ps-sbar-label">Adhesion Strength</span>
+        <div class="ps-sbar-track"><div class="ps-sbar-fill" id="ps-sbar-fill"></div></div>
+        <span class="ps-sbar-val" id="ps-sbar-val" style="color:#4a6478">— kPa</span>
+        <span class="ps-sbar-badge" id="ps-sbar-badge"
+          style="color:#4a6478;border-color:rgba(74,100,120,0.3)">Ready</span>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: OUTPUTS ── -->
+    <div class="ps-outputs">
+      <div class="ps-out-title">Output Analysis</div>
+
+      <!-- Strength meter -->
+      <div class="ps-out-section">
+        <div class="ps-out-sec-label">Adhesion Strength</div>
+        <canvas id="ps-gauge-canvas"></canvas>
+        <div class="ps-strength-readout">
+          <div class="ps-strength-val" id="ps-kpa">—</div>
+          <div class="ps-strength-unit">kPa</div>
+          <div class="ps-strength-badge" id="ps-badge" style="color:var(--muted);border-color:rgba(255,255,255,0.1)">Run simulation</div>
+        </div>
+      </div>
+
+      <!-- Bond types -->
+      <div class="ps-out-section">
+        <div class="ps-out-sec-label">Active Bond Types</div>
+        <div class="ps-bonds-grid">
+          <div class="ps-bond-chip" id="psb-hbond"><div class="ps-bond-dot"></div>H-Bond</div>
+          <div class="ps-bond-chip" id="psb-cov"><div class="ps-bond-dot"></div>Covalent</div>
+          <div class="ps-bond-chip amber" id="psb-metal"><div class="ps-bond-dot"></div>Metal Coord.</div>
+          <div class="ps-bond-chip violet" id="psb-pi"><div class="ps-bond-dot"></div>π–π Stack</div>
+        </div>
+      </div>
+
+      <!-- Failure / success -->
+      <div class="ps-out-section">
+        <div class="ps-out-sec-label">Condition</div>
+        <div class="ps-failure" id="ps-failure">—</div>
+        <div class="ps-success" id="ps-success" style="display:none">✅ Optimal conditions — maximum adhesion achieved via multi-modal bonding.</div>
+      </div>
+
+      <!-- Graphs -->
+      <div class="ps-out-section">
+        <div class="ps-out-sec-label">Adhesion vs pH</div>
+        <canvas id="ps-graph-ph"></canvas>
+      </div>
+      <div class="ps-out-section">
+        <div class="ps-out-sec-label">Adhesion vs DOPA Concentration</div>
+        <canvas id="ps-graph-dopa"></canvas>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p style="color:var(--teal);font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:300;margin-bottom:0.5rem;">
+    Nature solved in millions of years what engineers struggle with today.
+  </p>
+  <p>Mussel-Inspired Adhesion — Interactive Study Resource</p>
+</footer>
+
+<script>
+// ============================================================
+// HERO CANVAS — Underwater particle simulation
+// ============================================================
+(function() {
+  const canvas = document.getElementById('hero-canvas');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.set(0,0,18);
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+  // Water particles
+  const particleCount = 2000;
+  const positions = new Float32Array(particleCount * 3);
+  for(let i=0;i<particleCount;i++){
+    positions[i*3] = (Math.random()-0.5)*40;
+    positions[i*3+1] = (Math.random()-0.5)*25;
+    positions[i*3+2] = (Math.random()-0.5)*20;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+  const mat = new THREE.PointsMaterial({
+    color: 0x00e5c8, size: 0.08, transparent:true, opacity:0.5
+  });
+  const particles = new THREE.Points(geo,mat);
+  scene.add(particles);
+
+  // Rock surface at bottom
+  const rockGeo = new THREE.PlaneGeometry(40,8,30,10);
+  const pos = rockGeo.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    pos.setZ(i, (Math.random()-0.5)*0.6);
+  }
+  rockGeo.computeVertexNormals();
+  const rockMat = new THREE.MeshStandardMaterial({
+    color:0x0a1520, roughness:0.9, metalness:0.1
+  });
+  const rock = new THREE.Mesh(rockGeo,rockMat);
+  rock.rotation.x = -Math.PI/2;
+  rock.position.y = -7;
+  scene.add(rock);
+
+  // Mussel body
+  const mussels = [];
+  for(let i=0;i<4;i++){
+    const mg = new THREE.SphereGeometry(0.6,8,6);
+    mg.scale(1.8,1,1.1);
+    const mm = new THREE.MeshStandardMaterial({
+      color:0x1a2535, roughness:0.6, metalness:0.3,
+      emissive:0x001520, emissiveIntensity:0.3
+    });
+    const mussel = new THREE.Mesh(mg,mm);
+    mussel.position.set(-4+i*2.7, -5.8, (Math.random()-0.5)*2);
+    mussel.rotation.z = (Math.random()-0.5)*0.3;
+    scene.add(mussel);
+    mussels.push(mussel);
+
+    // Byssus threads
+    for(let t=0;t<5;t++){
+      const points = [];
+      points.push(new THREE.Vector3(
+        mussel.position.x + (Math.random()-0.5)*1,
+        mussel.position.y,
+        mussel.position.z + (Math.random()-0.5)*0.5
+      ));
+      points.push(new THREE.Vector3(
+        mussel.position.x + (Math.random()-0.5)*0.8,
+        mussel.position.y - 1.2,
+        mussel.position.z + (Math.random()-0.5)*0.4
+      ));
+      const curve = new THREE.CatmullRomCurve3(points);
+      const threadGeo = new THREE.TubeGeometry(curve,6,0.015,5,false);
+      const threadMat = new THREE.MeshStandardMaterial({
+        color:0x00e5c8, emissive:0x00e5c8, emissiveIntensity:0.4
+      });
+      scene.add(new THREE.Mesh(threadGeo,threadMat));
+    }
+  }
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x001a30, 2));
+  const dLight = new THREE.DirectionalLight(0x00e5c8, 1);
+  dLight.position.set(5,10,5);
+  scene.add(dLight);
+  const pLight = new THREE.PointLight(0x00b8ff, 1.5, 20);
+  pLight.position.set(-5,2,5);
+  scene.add(pLight);
+
+  let t = 0;
+  function animate(){
+    requestAnimationFrame(animate);
+    t += 0.003;
+    particles.rotation.y = t * 0.05;
+    // Gentle particle sway
+    const pos2 = particles.geometry.attributes.position;
+    for(let i=0;i<particleCount;i++){
+      pos2.setY(i, pos2.getY(i) + Math.sin(t + i*0.01)*0.003);
+    }
+    pos2.needsUpdate = true;
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  window.addEventListener('resize',()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
+  });
+})();
+
+// ============================================================
+// MUSSEL CANVAS — Byssus thread 3D model
+// ============================================================
+(function() {
+  const canvas = document.getElementById('mussel-canvas');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  camera.position.set(0,2,10);
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+  function resize() {
+    const box = canvas.parentElement;
+    const w = box.clientWidth; const h = box.clientHeight;
+    camera.aspect = w/h; camera.updateProjectionMatrix();
+    renderer.setSize(w,h);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Rock surface
+  const rGeo = new THREE.BoxGeometry(8,0.5,3);
+  const rMat = new THREE.MeshStandardMaterial({color:0x0a1a28, roughness:1});
+  const rockBase = new THREE.Mesh(rGeo,rMat);
+  rockBase.position.y = -3.5;
+  scene.add(rockBase);
+
+  // Mussel body (ellipsoid)
+  const mGeo = new THREE.SphereGeometry(1.2,16,12);
+  mGeo.scale(2,1,1.3);
+  const mMat = new THREE.MeshStandardMaterial({
+    color:0x1a2535, roughness:0.5, metalness:0.4,
+    emissive:0x000a10
+  });
+  const mussBody = new THREE.Mesh(mGeo,mMat);
+  mussBody.position.y = 1.5;
+  scene.add(mussBody);
+
+  // Shell lines
+  for(let i=0;i<5;i++){
+    const lGeo = new THREE.TorusGeometry(1.2-i*0.2, 0.02, 4, 40, Math.PI);
+    const lMat = new THREE.MeshStandardMaterial({color:0x2a4060, roughness:1});
+    const line = new THREE.Mesh(lGeo, lMat);
+    line.scale.set(1.6,1,1);
+    line.position.y = 1.5; line.position.x = -0.3;
+    line.rotation.z = Math.PI/2;
+    scene.add(line);
+  }
+
+  // Plaque at bottom
+  const plaqueGeo = new THREE.CylinderGeometry(0.5,0.6,0.2,12);
+  const plaqueMat = new THREE.MeshStandardMaterial({
+    color:0x00e5c8, emissive:0x00e5c8, emissiveIntensity:0.5, transparent:true, opacity:0.8
+  });
+
+  // Threads with CatmullRom curves
+  const threadData = [
+    [{x:-1,y:0.5,z:0},{x:-0.8,y:-1,z:0.1},{x:-0.5,y:-2.2,z:0},{x:-0.3,y:-3.2,z:0}],
+    [{x:-0.3,y:0.3,z:0.3},{x:-0.1,y:-0.8,z:0.4},{x:0.1,y:-2,z:0.3},{x:0.2,y:-3.2,z:0.1}],
+    [{x:0.3,y:0.3,z:-0.3},{x:0.2,y:-0.9,z:-0.3},{x:0.1,y:-2.1,z:-0.2},{x:0,y:-3.2,z:0}],
+    [{x:0.9,y:0.4,z:0},{x:0.7,y:-1,z:0.1},{x:0.5,y:-2.2,z:0},{x:0.3,y:-3.2,z:0}],
+    [{x:-0.6,y:0.4,z:-0.4},{x:-0.4,y:-1.1,z:-0.3},{x:-0.2,y:-2.3,z:-0.1},{x:0,y:-3.2,z:0}],
+  ];
+
+  threadData.forEach((pts,i) => {
+    const curve = new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(p.x,p.y,p.z)));
+    const tGeo = new THREE.TubeGeometry(curve,20,0.04,6,false);
+    const tMat = new THREE.MeshStandardMaterial({
+      color:0x00c8b8, emissive:0x004040, emissiveIntensity:0.3
+    });
+    scene.add(new THREE.Mesh(tGeo,tMat));
+
+    // Plaque at end
+    const plaque = new THREE.Mesh(plaqueGeo,plaqueMat);
+    const endPt = pts[pts.length-1];
+    plaque.position.set(endPt.x,endPt.y,endPt.z);
+    scene.add(plaque);
+  });
+
+  mussBody.position.y = 1.2;
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x051020,3));
+  const dl = new THREE.DirectionalLight(0x00e5c8,1.5);
+  dl.position.set(3,5,5); scene.add(dl);
+  const pl = new THREE.PointLight(0x00b8ff,2,15);
+  pl.position.set(-3,2,3); scene.add(pl);
+
+  // Mouse rotation
+  let mouseX=0,mouseY=0;
+  canvas.addEventListener('mousemove',e=>{
+    const r = canvas.getBoundingClientRect();
+    mouseX = (e.clientX-r.left)/r.width*2-1;
+    mouseY = -((e.clientY-r.top)/r.height)*2+1;
+  });
+
+  let rot=0;
+  function animate(){
+    requestAnimationFrame(animate);
+    rot+=0.005;
+    scene.rotation.y = rot + mouseX*0.5;
+    scene.rotation.x = mouseY*0.2;
+    renderer.render(scene,camera);
+  }
+  animate();
+})();
+
+// ============================================================
+// DOPA CANVAS — Molecular model
+// ============================================================
+(function() {
+  const canvas = document.getElementById('dopa-canvas');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50,1,0.1,100);
+  camera.position.set(0,0,12);
+  const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+  function resize(){
+    const box=canvas.parentElement;
+    const w=box.clientWidth,h=box.clientHeight;
+    camera.aspect=w/h;camera.updateProjectionMatrix();
+    renderer.setSize(w,h);
+  }
+  resize(); window.addEventListener('resize',resize);
+
+  // DOPA molecule (stylized)
+  // Catechol ring (benzene ring with 2 OH groups)
+  const atomColors = {
+    C:0x404040, H:0xffffff, O:0xff4444, N:0x4488ff
+  };
+  const atoms = [];
+
+  function addAtom(x,y,z,el,r){
+    const g=new THREE.SphereGeometry(r||0.25,12,12);
+    const m=new THREE.MeshStandardMaterial({
+      color:atomColors[el]||0x888888,
+      emissive:atomColors[el]||0x888888,
+      emissiveIntensity:0.15,
+      roughness:0.3,metalness:0.1
+    });
+    const mesh=new THREE.Mesh(g,m);
+    mesh.position.set(x,y,z);
+    scene.add(mesh); atoms.push(mesh);
+    return mesh;
+  }
+
+  function addBond(a,b,color){
+    const dir=new THREE.Vector3().subVectors(b,a);
+    const len=dir.length();
+    const mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(0.5);
+    const g=new THREE.CylinderGeometry(0.06,0.06,len,8);
+    const m=new THREE.MeshStandardMaterial({color:color||0x888888,roughness:0.5});
+    const mesh=new THREE.Mesh(g,m);
+    mesh.position.copy(mid);
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());
+    scene.add(mesh);
+  }
+
+  // Benzene ring
+  const ringAtoms = [];
+  for(let i=0;i<6;i++){
+    const angle=i*Math.PI/3;
+    const x=Math.cos(angle)*1.2, y=Math.sin(angle)*1.2;
+    ringAtoms.push(addAtom(x,y,0,'C',0.28));
+  }
+  // Ring bonds
+  for(let i=0;i<6;i++){
+    const a=ringAtoms[i].position;
+    const b=ringAtoms[(i+1)%6].position;
+    addBond(a,b,0x555555);
+  }
+  // OH groups (ortho positions)
+  const o1=addAtom(-0.6,2.1,0,'O',0.3);
+  const o2=addAtom(-1.6,1.1,0,'O',0.3);
+  addBond(ringAtoms[1].position,o1.position,0xcc3333);
+  addBond(ringAtoms[2].position,o2.position,0xcc3333);
+
+  // H on oxygens
+  const h1=addAtom(-0.2,2.8,0,'H',0.18);
+  const h2=addAtom(-2.2,1.5,0,'H',0.18);
+  addBond(o1.position,h1.position,0xaaaaaa);
+  addBond(o2.position,h2.position,0xaaaaaa);
+
+  // Side chain: CH2-CH(NH2)-COOH
+  const c7=addAtom(1.3,-0.9,0,'C',0.28);
+  const c8=addAtom(2.0,-2.0,0,'C',0.28);
+  addBond(ringAtoms[5].position,c7.position,0x555555);
+  addBond(c7.position,c8.position,0x555555);
+
+  // NH2
+  const n=addAtom(3.2,-1.5,0,'N',0.3);
+  addBond(c8.position,n.position,0x3366cc);
+
+  // COOH
+  const c9=addAtom(2.0,-3.2,0,'C',0.28);
+  const oa=addAtom(1.0,-4.0,0,'O',0.28);
+  const ob=addAtom(3.0,-4.0,0,'O',0.28);
+  addBond(c8.position,c9.position,0x555555);
+  addBond(c9.position,oa.position,0xcc3333);
+  addBond(c9.position,ob.position,0xcc3333);
+
+  // Glowing bond orbs (representing active bonds)
+  const bondOrbs = [];
+  [o1,o2].forEach((o,i)=>{
+    const bg=new THREE.SphereGeometry(0.5,16,16);
+    const bm=new THREE.MeshStandardMaterial({
+      color:0x00e5c8, emissive:0x00e5c8, emissiveIntensity:1.5,
+      transparent:true, opacity:0.3
+    });
+    const bo=new THREE.Mesh(bg,bm);
+    bo.position.copy(o.position);
+    scene.add(bo); bondOrbs.push(bo);
+  });
+
+  scene.add(new THREE.AmbientLight(0x102030,4));
+  const dl=new THREE.DirectionalLight(0xffffff,1);
+  dl.position.set(5,5,5); scene.add(dl);
+  const pl=new THREE.PointLight(0x00e5c8,2,20);
+  pl.position.set(-3,3,5); scene.add(pl);
+
+  let mouseX=0,mouseY=0,isDragging=false,lastX=0,lastY=0;
+  let rotX=0,rotY=0;
+  canvas.addEventListener('mousedown',e=>{isDragging=true;lastX=e.clientX;lastY=e.clientY;});
+  window.addEventListener('mouseup',()=>isDragging=false);
+  canvas.addEventListener('mousemove',e=>{
+    if(!isDragging)return;
+    rotY+=(e.clientX-lastX)*0.01;
+    rotX+=(e.clientY-lastY)*0.01;
+    lastX=e.clientX;lastY=e.clientY;
+  });
+
+  let t=0;
+  function animate(){
+    requestAnimationFrame(animate);
+    t+=0.02;
+    if(!isDragging) rotY+=0.005;
+    scene.rotation.y=rotY;
+    scene.rotation.x=rotX;
+    bondOrbs.forEach((bo,i)=>{
+      bo.material.opacity=0.2+0.2*Math.sin(t+i*1.5);
+      bo.scale.setScalar(1+0.1*Math.sin(t*1.5+i));
+    });
+    scene.position.y=-0.5;
+    renderer.render(scene,camera);
+  }
+  animate();
+})();
+
+// ============================================================
+// MECHANISM CANVAS — fully animated 4-step system
+// ============================================================
+let mechStep = 0, mechT = 0;
+let mechScene, mechCamera, mechRenderer;
+let mWater=[], mProteins=[], mBondLines=[], mBondGlows=[], mCrosslinks=[], mSparks=[];
+let mFoot, mCoaCanvas, mAmbPL, mBondPL, mCrossPL;
+let mechCamTargetY=2, mechCamTargetZ=12;
+
+(function(){
+  const canvas = document.getElementById('mechanism-canvas');
+  mechScene = new THREE.Scene();
+  mechCamera = new THREE.PerspectiveCamera(50,1,0.1,100);
+  mechCamera.position.set(0,2,12);
+  mechRenderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  mechRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  mechRenderer.shadowMap.enabled=true;
+
+  function resize(){
+    const b=canvas.parentElement,w=b.clientWidth,h=b.clientHeight;
+    mechCamera.aspect=w/h; mechCamera.updateProjectionMatrix();
+    mechRenderer.setSize(w,h);
+  }
+  resize(); window.addEventListener('resize',resize);
+
+  // — Lights —
+  mechScene.add(new THREE.AmbientLight(0x061220,3));
+  mAmbPL = new THREE.PointLight(0x00b8ff,2,20);
+  mAmbPL.position.set(0,4,4); mechScene.add(mAmbPL);
+  mBondPL = new THREE.PointLight(0x00e5c8,0,15);
+  mBondPL.position.set(0,-1.5,3); mechScene.add(mBondPL);
+  mCrossPL = new THREE.PointLight(0xffb347,0,15);
+  mCrossPL.position.set(0,0,4); mechScene.add(mCrossPL);
+  const dL = new THREE.DirectionalLight(0xffffff,0.8);
+  dL.position.set(5,8,5); mechScene.add(dL);
+
+  // — Surface —
+  const rg = new THREE.BoxGeometry(10,0.45,3.5);
+  const rm = new THREE.MeshStandardMaterial({color:0x0d1f30,roughness:0.9,metalness:0.15});
+  const rock = new THREE.Mesh(rg,rm); rock.position.y=-3.2;
+  mechScene.add(rock);
+
+  // Surface atoms (grid)
+  for(let ix=-4;ix<=4;ix++) for(let iz=-1;iz<=1;iz++){
+    const sg=new THREE.SphereGeometry(0.15,8,8);
+    const sm=new THREE.MeshStandardMaterial({color:0x1e3a50,roughness:0.7,metalness:0.4});
+    const s=new THREE.Mesh(sg,sm);
+    s.position.set(ix,-3.0,iz*0.9); mechScene.add(s);
+  }
+
+  // — Mussel foot (step 0 visual) —
+  const footGeo = new THREE.SphereGeometry(1.4,16,12);
+  footGeo.scale(1,1.6,0.8);
+  const footMat = new THREE.MeshStandardMaterial({
+    color:0x1a2840,roughness:0.6,metalness:0.1,
+    transparent:true,opacity:0
+  });
+  mFoot = new THREE.Mesh(footGeo,footMat);
+  mFoot.position.set(0,4,0); mechScene.add(mFoot);
+
+  // — Water molecules (80) —
+  for(let i=0;i<80;i++){
+    const g=new THREE.SphereGeometry(0.11,8,8);
+    const m=new THREE.MeshStandardMaterial({
+      color:0x4db8ff,emissive:0x1166cc,emissiveIntensity:0.5,
+      transparent:true,opacity:0,roughness:0.2
+    });
+    const p=new THREE.Mesh(g,m);
+    p.position.set((Math.random()-0.5)*8,-2.7+(Math.random()-0.5)*0.5,(Math.random()-0.5)*3);
+    p.userData={bx:p.position.x,by:p.position.y,bz:p.position.z,
+      phase:Math.random()*Math.PI*2,vx:0,vy:0};
+    mechScene.add(p); mWater.push(p);
+  }
+
+  // — Coacervate droplet (step 1) —
+  const cg=new THREE.SphereGeometry(1.0,16,16);
+  const cm=new THREE.MeshStandardMaterial({
+    color:0x00e5c8,emissive:0x00e5c8,emissiveIntensity:0.8,
+    transparent:true,opacity:0,roughness:0.1
+  });
+  mCoaCanvas=new THREE.Mesh(cg,cm);
+  mCoaCanvas.position.set(0,3,0); mechScene.add(mCoaCanvas);
+
+  // — Proteins (12) —
+  const protXs=[-3.5,-2.5,-1.5,-0.5,0.5,1.5,2.5,3.5,-3.0,-1.0,1.0,3.0];
+  for(let i=0;i<12;i++){
+    const g=new THREE.SphereGeometry(0.24+Math.random()*0.06,12,12);
+    const m=new THREE.MeshStandardMaterial({
+      color:0x00e5c8,emissive:0x00e5c8,emissiveIntensity:0.4,
+      transparent:true,opacity:0,roughness:0.25
+    });
+    const p=new THREE.Mesh(g,m);
+    p.position.set(protXs[i]||((Math.random()-0.5)*7),5,(Math.random()-0.5)*2.5);
+    p.userData={tx:protXs[i]||((Math.random()-0.5)*5),ty:-2.6+Math.random()*0.3,
+      phase:Math.random()*Math.PI*2,bonded:false,crosslinked:false};
+    mechScene.add(p); mProteins.push(p);
+
+    // Bond line
+    const bg=new THREE.BufferGeometry();
+    const ba=new Float32Array(6); bg.setAttribute('position',new THREE.BufferAttribute(ba,3));
+    const bm=new THREE.LineBasicMaterial({color:0x00e5c8,transparent:true,opacity:0,linewidth:2});
+    const bl=new THREE.Line(bg,bm); mechScene.add(bl); mBondLines.push(bl);
+
+    // Bond glow sphere at surface
+    const gg=new THREE.SphereGeometry(0.1,8,8);
+    const gm=new THREE.MeshStandardMaterial({
+      color:0x00e5c8,emissive:0x00e5c8,emissiveIntensity:2.5,
+      transparent:true,opacity:0,roughness:0
+    });
+    const glow=new THREE.Mesh(gg,gm);
+    glow.position.set(p.userData.tx,-3.0,p.position.z);
+    mechScene.add(glow); mBondGlows.push(glow);
+  }
+
+  // — Crosslink lines (between adjacent proteins) —
+  for(let i=0;i<8;i++){
+    const bg=new THREE.BufferGeometry();
+    const ba=new Float32Array(6); bg.setAttribute('position',new THREE.BufferAttribute(ba,3));
+    const bm=new THREE.LineBasicMaterial({color:0xffb347,transparent:true,opacity:0,linewidth:3});
+    const cl=new THREE.Line(bg,bm); mechScene.add(cl); mCrosslinks.push(cl);
+  }
+
+  // — Spark particles (for bond formation) —
+  for(let i=0;i<60;i++){
+    const sg=new THREE.SphereGeometry(0.05,6,6);
+    const sm=new THREE.MeshStandardMaterial({
+      color:0x00e5c8,emissive:0x00e5c8,emissiveIntensity:2,
+      transparent:true,opacity:0,roughness:0
+    });
+    const sp=new THREE.Mesh(sg,sm);
+    sp.userData={vx:0,vy:0,vz:0,life:0,maxLife:0};
+    mechScene.add(sp); mSparks.push(sp);
+  }
+
+  // — Animation loop —
+  function animate(){
+    requestAnimationFrame(animate);
+    mechT+=0.016;
+
+    // Camera smooth follow
+    mechCamera.position.y+=(mechCamTargetY-mechCamera.position.y)*0.04;
+    mechCamera.position.z+=(mechCamTargetZ-mechCamera.position.z)*0.04;
+    mechCamera.lookAt(0,-1,0);
+
+    if(mechStep===0){
+      // Water layer — rippling blue hydration
+      mWater.forEach((p,i)=>{
+        p.position.y=p.userData.by+Math.sin(mechT*2.5+p.userData.phase)*0.1;
+        p.position.x=p.userData.bx+Math.sin(mechT*1.8+p.userData.phase*0.7)*0.04;
+        p.material.opacity=Math.min(0.7,p.material.opacity+0.03);
+        p.material.emissiveIntensity=0.3+Math.sin(mechT*3+i*0.2)*0.15;
+      });
+      // Foot descending
+      mFoot.material.opacity=Math.min(0.6,mFoot.material.opacity+0.015);
+      mFoot.position.y=Math.max(-0.5,mFoot.position.y-0.015);
+      // Water scatters near foot
+      mWater.forEach(p=>{
+        const dx=p.position.x-mFoot.position.x;
+        const dy=p.position.y-mFoot.position.y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<2.2){const f=(2.2-d)*0.006;p.userData.vx+=dx/d*f;p.userData.vy+=f*0.3;}
+        p.position.x+=p.userData.vx;p.position.y+=p.userData.vy;
+        p.userData.vx*=0.94;p.userData.vy*=0.94;
+      });
+      // Protein hidden
+      mProteins.forEach(p=>{p.material.opacity=Math.max(0,p.material.opacity-0.04);});
+      mCoaCanvas.material.opacity=Math.max(0,mCoaCanvas.material.opacity-0.05);
+      mBondLines.forEach(b=>b.material.opacity=Math.max(0,b.material.opacity-0.06));
+      mBondGlows.forEach(g=>g.material.opacity=Math.max(0,g.material.opacity-0.06));
+      mCrosslinks.forEach(c=>c.material.opacity=Math.max(0,c.material.opacity-0.06));
+      mBondPL.intensity=0; mCrossPL.intensity=0;
+    }
+    else if(mechStep===1){
+      // Water disperses upward
+      mWater.forEach(p=>{
+        p.position.y+=0.018+Math.random()*0.01;
+        p.position.x+=(Math.random()-0.5)*0.04;
+        p.material.opacity=Math.max(0,p.material.opacity-0.01);
+      });
+      // Foot rises
+      mFoot.position.y=Math.min(6,mFoot.position.y+0.02);
+      mFoot.material.opacity=Math.max(0,mFoot.material.opacity-0.02);
+      // Coacervate droplet glows
+      mCoaCanvas.material.opacity=Math.min(0.6,mCoaCanvas.material.opacity+0.02);
+      mCoaCanvas.material.emissiveIntensity=0.6+Math.sin(mechT*4)*0.3;
+      mCoaCanvas.scale.setScalar(1+Math.sin(mechT*3)*0.05);
+      mCoaCanvas.position.y=2.5+Math.sin(mechT*2)*0.15;
+      // Proteins emerge from droplet and descend
+      mProteins.forEach((p,i)=>{
+        const delay=i*0.3;
+        const t2=Math.max(0,mechT*1.2-delay);
+        if(t2>0){
+          p.material.opacity=Math.min(0.9,p.material.opacity+0.025);
+          const startX=mCoaCanvas.position.x+(Math.random()-0.5)*0.5;
+          const startY=mCoaCanvas.position.y;
+          if(p.position.y>p.userData.ty+0.1){
+            p.position.x+=(p.userData.tx-p.position.x)*0.03;
+            p.position.y=Math.max(p.userData.ty,p.position.y-0.04-Math.random()*0.02);
+          }
+          p.rotation.y=mechT+i*0.4;
+        }
+      });
+      mBondLines.forEach(b=>b.material.opacity=Math.max(0,b.material.opacity-0.04));
+      mBondGlows.forEach(g=>g.material.opacity=Math.max(0,g.material.opacity-0.04));
+      mCrosslinks.forEach(c=>c.material.opacity=Math.max(0,c.material.opacity-0.04));
+      mBondPL.intensity*=0.95; mCrossPL.intensity*=0.95;
+    }
+    else if(mechStep===2){
+      // Water gone
+      mWater.forEach(p=>p.material.opacity=Math.max(0,p.material.opacity-0.03));
+      mCoaCanvas.material.opacity=Math.max(0,mCoaCanvas.material.opacity-0.03);
+      mFoot.material.opacity=0;
+      mCrosslinks.forEach(c=>c.material.opacity=Math.max(0,c.material.opacity-0.03));
+      // Proteins at surface, bonds forming
+      mProteins.forEach((p,i)=>{
+        p.position.y=p.userData.ty;
+        p.position.x+=(p.userData.tx-p.position.x)*0.06;
+        p.material.opacity=Math.min(1,p.material.opacity+0.03);
+        p.material.emissiveIntensity=0.6+Math.sin(mechT*3+i*0.5)*0.5;
+        // Bond lines extend
+        const bl=mBondLines[i];
+        const bp=bl.geometry.attributes.position;
+        bp.setXYZ(0,p.position.x,p.position.y-0.22,p.position.z);
+        bp.setXYZ(1,p.userData.tx,-3.0,p.position.z);
+        bp.needsUpdate=true;
+        const targetOp=0.9; bl.material.opacity+=(targetOp-bl.material.opacity)*0.06;
+        bl.material.color.setHex(0x00e5c8);
+        // Glow at anchor
+        mBondGlows[i].position.set(p.userData.tx,-3.0,p.position.z);
+        mBondGlows[i].material.opacity=Math.min(1,mBondGlows[i].material.opacity+0.05);
+        mBondGlows[i].material.emissiveIntensity=1.5+Math.sin(mechT*5+i)*0.8;
+        mBondGlows[i].scale.setScalar(1+Math.sin(mechT*4+i)*0.25);
+        p.userData.bonded=true;
+        // Sparks on bond formation
+        if(Math.random()<0.02){
+          const sp=mSparks.find(s=>s.userData.life<=0);
+          if(sp){
+            sp.position.set(p.userData.tx,-3.0+Math.random()*0.2,p.position.z);
+            sp.userData.vx=(Math.random()-0.5)*0.08;
+            sp.userData.vy=Math.random()*0.1+0.03;
+            sp.userData.vz=(Math.random()-0.5)*0.06;
+            sp.userData.life=30+Math.random()*20;
+            sp.userData.maxLife=sp.userData.life;
+            sp.material.color.setHex(0x00e5c8);
+            sp.material.emissive.setHex(0x00e5c8);
+          }
+        }
+      });
+      mBondPL.intensity=Math.min(2,mBondPL.intensity+0.05);
+      mCrossPL.intensity=0;
+    }
+    else if(mechStep===3){
+      // All bonds formed, crosslinks appear
+      mWater.forEach(p=>p.material.opacity=Math.max(0,p.material.opacity-0.04));
+      mCoaCanvas.material.opacity=0; mFoot.material.opacity=0;
+      mProteins.forEach((p,i)=>{
+        p.position.y=p.userData.ty;
+        p.position.x+=(p.userData.tx-p.position.x)*0.04;
+        // Color shift: teal → amber (hardening)
+        p.material.color.lerp(new THREE.Color(0xffb347),0.03);
+        p.material.emissive.lerp(new THREE.Color(0xcc8800),0.03);
+        p.material.emissiveIntensity=0.8+Math.sin(mechT*4+i*0.6)*0.3;
+        // Slight scale pulse → rigidity
+        p.scale.setScalar(1+Math.sin(mechT*2+i*0.4)*0.03);
+        // Bond lines update
+        const bl=mBondLines[i];
+        const bp=bl.geometry.attributes.position;
+        bp.setXYZ(0,p.position.x,p.position.y-0.22,p.position.z);
+        bp.setXYZ(1,p.userData.tx,-3.0,p.position.z);
+        bp.needsUpdate=true;
+        bl.material.opacity=0.7+Math.sin(mechT*3+i)*0.15;
+        bl.material.color.setHex(0xffb347);
+        mBondGlows[i].material.color.setHex(0xffb347);
+        mBondGlows[i].material.emissive.setHex(0xffb347);
+        mBondGlows[i].material.opacity=0.8+Math.sin(mechT*5+i)*0.2;
+        mBondGlows[i].material.emissiveIntensity=2+Math.sin(mechT*4+i)*0.8;
+      });
+      // Crosslinks between adjacent proteins
+      mCrosslinks.forEach((cl,i)=>{
+        const p1=mProteins[i], p2=mProteins[i+1];
+        if(!p2)return;
+        const cp=cl.geometry.attributes.position;
+        cp.setXYZ(0,p1.position.x,p1.position.y,p1.position.z);
+        cp.setXYZ(1,p2.position.x,p2.position.y,p2.position.z);
+        cp.needsUpdate=true;
+        const targetOp=0.85;
+        cl.material.opacity+=(targetOp-cl.material.opacity)*0.04;
+        cl.material.color.setHex(0xffd166);
+        // Crosslink sparks
+        if(Math.random()<0.015){
+          const sp=mSparks.find(s=>s.userData.life<=0);
+          if(sp){
+            const mx=(p1.position.x+p2.position.x)/2+(Math.random()-0.5)*0.3;
+            const my=(p1.position.y+p2.position.y)/2+(Math.random()-0.5)*0.2;
+            sp.position.set(mx,my,p1.position.z+(Math.random()-0.5)*0.3);
+            sp.userData.vx=(Math.random()-0.5)*0.07;
+            sp.userData.vy=Math.random()*0.08;
+            sp.userData.vz=(Math.random()-0.5)*0.05;
+            sp.userData.life=25+Math.random()*15;
+            sp.userData.maxLife=sp.userData.life;
+            sp.material.color.setHex(0xffd166);
+            sp.material.emissive.setHex(0xffd166);
+          }
+        }
+      });
+      mBondPL.intensity=1.5;
+      mCrossPL.intensity=Math.min(2.5,mCrossPL.intensity+0.04);
+    }
+
+    // Spark system
+    mSparks.forEach(sp=>{
+      if(sp.userData.life<=0){sp.material.opacity=0;return;}
+      sp.userData.life--;
+      sp.position.x+=sp.userData.vx;
+      sp.position.y+=sp.userData.vy;
+      sp.position.z+=sp.userData.vz;
+      sp.userData.vy-=0.003; // gravity
+      sp.material.opacity=(sp.userData.life/sp.userData.maxLife)*0.9;
+      sp.scale.setScalar(sp.userData.life/sp.userData.maxLife);
+    });
+
+    mechRenderer.render(mechScene,mechCamera);
+  }
+  animate();
+})();
+
+window.setMechStep = function(step) {
+  mechStep = step;
+  // Camera positions per step
+  const camPos=[[0,2,12],[0,3,14],[0,1.5,10],[0,2,11]];
+  mechCamTargetY=camPos[step][1]; mechCamTargetZ=camPos[step][2];
+  // Reset
+  if(step===0){
+    mWater.forEach(p=>{
+      p.position.set(p.userData.bx,p.userData.by,p.userData.bz);
+      p.material.opacity=0; p.userData.vx=0; p.userData.vy=0;
+    });
+    mFoot.position.set(0,4,0); mFoot.material.opacity=0;
+    mProteins.forEach(p=>{ p.position.set(p.userData.tx,5,p.position.z); p.material.opacity=0; p.material.color.setHex(0x00e5c8); p.material.emissive.setHex(0x00e5c8); p.userData.bonded=false; });
+    mBondLines.forEach(b=>b.material.opacity=0);
+    mBondGlows.forEach(g=>g.material.opacity=0);
+    mCrosslinks.forEach(c=>c.material.opacity=0);
+    mCoaCanvas.material.opacity=0; mCoaCanvas.position.set(0,3,0);
+  } else if(step===1){
+    mWater.forEach(p=>{p.position.set(p.userData.bx,p.userData.by,p.userData.bz);p.material.opacity=0.65;p.userData.vx=0;p.userData.vy=0;});
+    mFoot.position.set(0,-0.5,0); mFoot.material.opacity=0.5;
+    mProteins.forEach(p=>{ p.position.set(p.userData.tx,5,p.position.z); p.material.opacity=0; p.material.color.setHex(0x00e5c8); p.material.emissive.setHex(0x00e5c8); });
+    mBondLines.forEach(b=>b.material.opacity=0); mBondGlows.forEach(g=>g.material.opacity=0);
+    mCrosslinks.forEach(c=>c.material.opacity=0); mCoaCanvas.material.opacity=0;
+  } else if(step===2){
+    mWater.forEach(p=>p.material.opacity=0);
+    mFoot.material.opacity=0; mCoaCanvas.material.opacity=0;
+    mProteins.forEach(p=>{p.position.y=p.userData.ty;p.material.opacity=1;p.material.color.setHex(0x00e5c8);p.material.emissive.setHex(0x00e5c8);});
+    mBondLines.forEach(b=>b.material.opacity=0); mBondGlows.forEach(g=>g.material.opacity=0);
+    mCrosslinks.forEach(c=>c.material.opacity=0);
+  } else if(step===3){
+    mWater.forEach(p=>p.material.opacity=0);
+    mFoot.material.opacity=0; mCoaCanvas.material.opacity=0;
+    mProteins.forEach(p=>{p.position.y=p.userData.ty;p.material.opacity=1;});
+    mBondLines.forEach(b=>b.material.opacity=0.7);
+    mBondGlows.forEach(g=>g.material.opacity=0.8);
+    mCrosslinks.forEach(c=>c.material.opacity=0);
+  }
+  const labels=['Step 1 — Water layer displacement (foot contact)','Step 2 — Protein secretion (coacervate droplet)','Step 3 — DOPA bonds forming (live)','Step 4 — Crosslinking & plaque hardening'];
+  document.getElementById('mech-label').textContent=labels[step];
+  document.querySelectorAll('#mechanism-steps .step-item').forEach((el,i)=>{
+    el.classList.toggle('active',i===step);
+  });
+};
+
+// ============================================================
+// pH CANVAS — DOPA Oxidation Animation (full rebuild)
+// ============================================================
+(function(){
+  const canvas=document.getElementById('ph-canvas');
+  if(!canvas)return;
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(48,1,0.1,100);
+  camera.position.set(0,0.5,9);
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+
+  function resize(){
+    const box=canvas.parentElement,w=box.clientWidth,h=box.clientHeight;
+    camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);
+  }
+  resize();window.addEventListener('resize',resize);
+
+  scene.add(new THREE.AmbientLight(0x051020,3.5));
+  const dl=new THREE.DirectionalLight(0xffffff,1.2);dl.position.set(5,5,5);scene.add(dl);
+  const phPL=new THREE.PointLight(0x00e5c8,2,12);phPL.position.set(0,0,4);scene.add(phPL);
+
+  // — Surface plate at bottom —
+  const surfGeo=new THREE.BoxGeometry(8,0.3,2);
+  const surfMat=new THREE.MeshStandardMaterial({color:0x0d1f30,roughness:0.9,metalness:0.2});
+  const surf=new THREE.Mesh(surfGeo,surfMat);surf.position.y=-3;scene.add(surf);
+  // Surface atoms
+  for(let i=-3;i<=3;i++){
+    const sg=new THREE.SphereGeometry(0.14,8,8);
+    const sm=new THREE.MeshStandardMaterial({color:0x1e3a50,roughness:0.7,metalness:0.4});
+    const sa=new THREE.Mesh(sg,sm);sa.position.set(i,-2.85,0);scene.add(sa);
+  }
+
+  // — DOPA Ring (catechol benzene ring) —
+  const ringGroup=new THREE.Group();scene.add(ringGroup);
+  const ringAtoms=[];
+  for(let i=0;i<6;i++){
+    const angle=i*Math.PI/3;
+    const g=new THREE.SphereGeometry(0.22,12,12);
+    const m=new THREE.MeshStandardMaterial({color:0x2a2a2a,emissive:0x080808,roughness:0.35,metalness:0.1});
+    const mesh=new THREE.Mesh(g,m);
+    mesh.position.set(Math.cos(angle)*0.95,Math.sin(angle)*0.95+0.3,0);
+    ringGroup.add(mesh);ringAtoms.push(mesh);
+  }
+  // Ring bonds (cylinders)
+  const ringBonds=[];
+  for(let i=0;i<6;i++){
+    const a=ringAtoms[i].position,b=ringAtoms[(i+1)%6].position;
+    const dir=new THREE.Vector3().subVectors(b,a);
+    const len=dir.length();
+    const mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(0.5);
+    const cg=new THREE.CylinderGeometry(0.055,0.055,len,8);
+    const cm=new THREE.MeshStandardMaterial({color:0x3a3a3a,roughness:0.4});
+    const cb=new THREE.Mesh(cg,cm);
+    cb.position.copy(mid);
+    cb.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());
+    ringGroup.add(cb);ringBonds.push(cb);
+  }
+
+  // — OH groups (catechol) —
+  const ohGroup=new THREE.Group();ringGroup.add(ohGroup);
+  const ohMeshes=[];const ohBasePos=[];
+  [[1,0.6],[2,0.6]].forEach(([ri],gi)=>{
+    const baseP=ringAtoms[ri].position.clone();
+    const angle=(ri/6)*Math.PI*2;
+    // O atom
+    const og=new THREE.SphereGeometry(0.2,10,10);
+    const om=new THREE.MeshStandardMaterial({color:0xff3300,emissive:0xff2200,emissiveIntensity:0.6,roughness:0.3});
+    const oMesh=new THREE.Mesh(og,om);
+    oMesh.position.set(baseP.x+Math.cos(angle)*0.65,baseP.y+Math.sin(angle)*0.65,0);
+    ohGroup.add(oMesh);ohMeshes.push(oMesh);
+    ohBasePos.push(oMesh.position.clone());
+    // H atom
+    const hg=new THREE.SphereGeometry(0.12,8,8);
+    const hm=new THREE.MeshStandardMaterial({color:0xeeeeee,roughness:0.5});
+    const hMesh=new THREE.Mesh(hg,hm);
+    hMesh.position.set(oMesh.position.x+Math.cos(angle)*0.32,oMesh.position.y+Math.sin(angle)*0.28,0);
+    ohGroup.add(hMesh);ohMeshes.push(hMesh);
+    // O-H bond line
+    const lpts=[oMesh.position.clone(),hMesh.position.clone()];
+    const lg=new THREE.BufferGeometry().setFromPoints(lpts);
+    const lm=new THREE.LineBasicMaterial({color:0xaaaaaa,transparent:true,opacity:0.7});
+    ohGroup.add(new THREE.Line(lg,lm));
+  });
+
+  // — Dopaquinone C=O double bond indicators (shown at high pH) —
+  const quinoneGlow=[];
+  [0,1].forEach(gi=>{
+    const qg=new THREE.SphereGeometry(0.18,8,8);
+    const qm=new THREE.MeshStandardMaterial({
+      color:0xff6600,emissive:0xff4400,emissiveIntensity:2,
+      transparent:true,opacity:0,roughness:0
+    });
+    const qMesh=new THREE.Mesh(qg,qm);
+    qMesh.position.copy(ohBasePos[gi]||new THREE.Vector3(0,0,0));
+    ringGroup.add(qMesh);quinoneGlow.push(qMesh);
+  });
+
+  // — Bond line: DOPA → surface —
+  const bondGeo=new THREE.BufferGeometry();
+  const bondArr=new Float32Array(6);
+  bondGeo.setAttribute('position',new THREE.BufferAttribute(bondArr,3));
+  const bondMat=new THREE.LineBasicMaterial({color:0x00e5c8,transparent:true,opacity:0.9,linewidth:2});
+  const bondLine=new THREE.Line(bondGeo,bondMat);scene.add(bondLine);
+  const bondGlowGeo=new THREE.SphereGeometry(0.12,8,8);
+  const bondGlowMat=new THREE.MeshStandardMaterial({color:0x00e5c8,emissive:0x00e5c8,emissiveIntensity:2.5,transparent:true,opacity:0.9});
+  const bondGlow=new THREE.Mesh(bondGlowGeo,bondGlowMat);
+  bondGlow.position.set(0,-2.85,0);scene.add(bondGlow);
+
+  // — Orbit bond particles (show electron density / bonding activity) —
+  const orbitP=[];
+  for(let i=0;i<32;i++){
+    const g=new THREE.SphereGeometry(0.055,6,6);
+    const m=new THREE.MeshStandardMaterial({color:0x00e5c8,emissive:0x00e5c8,emissiveIntensity:1.5,transparent:true,opacity:0.8});
+    const mesh=new THREE.Mesh(g,m);
+    mesh.userData={angle:Math.random()*Math.PI*2,radius:1.5+Math.random()*0.35,speed:0.6+Math.random()*0.5,yOff:(Math.random()-0.5)*0.5};
+    scene.add(mesh);orbitP.push(mesh);
+  }
+
+  // — Crack/break particles (emitted when bonds break at high pH) —
+  const breakP=[];
+  for(let i=0;i<40;i++){
+    const g=new THREE.SphereGeometry(0.04,6,6);
+    const m=new THREE.MeshStandardMaterial({color:0xff4444,emissive:0xff2200,emissiveIntensity:1.5,transparent:true,opacity:0,roughness:0});
+    const mesh=new THREE.Mesh(g,m);
+    mesh.userData={vx:0,vy:0,vz:0,life:0,maxLife:0};
+    scene.add(mesh);breakP.push(mesh);
+  }
+
+  let phT=0, phVal=5, lastPH=5;
+  const slider=document.getElementById('ph-slider');
+  const phDisplay=document.getElementById('ph-display');
+  const phStatus=document.getElementById('ph-status');
+  const molLabel=document.getElementById('ph-mol-label');
+
+  slider.addEventListener('input',()=>{
+    const prev=phVal;
+    phVal=parseFloat(slider.value);
+    phDisplay.textContent=phVal.toFixed(1);
+    // Color display
+    const t2=(phVal-3)/6;
+    const r2=Math.round(t2<0.5?t2*2*255:255);
+    const g2v=Math.round(t2<0.5?(1-t2*2)*229+t2*2*150:150*(1-(t2-0.5)*2));
+    const b2=Math.round(t2<0.5?200*(1-t2*2):0);
+    phDisplay.style.color=`rgb(${r2},${g2v},${b2})`;
+
+    // Emit break particles when crossing pH 7
+    if(prev<7&&phVal>=7){
+      breakP.forEach(bp=>{
+        if(bp.userData.life<=0){
+          bp.position.set((Math.random()-0.5)*2,0.3+Math.random()*0.5,Math.random()*0.5);
+          bp.userData.vx=(Math.random()-0.5)*0.12;
+          bp.userData.vy=Math.random()*0.15+0.05;
+          bp.userData.vz=(Math.random()-0.5)*0.1;
+          bp.userData.life=40+Math.random()*30;
+          bp.userData.maxLife=bp.userData.life;
+        }
+      });
+    }
+
+    // Status text
+    if(phVal<5.5){
+      phStatus.innerHTML=`<span class="status-badge" style="background:rgba(0,229,200,0.12);color:#00e5c8;display:inline-block;padding:0.2rem 0.6rem;border-radius:2px;font-size:0.65rem;">DOPA Active — Catechol</span><br><br>
+        At pH ${phVal.toFixed(1)}: DOPA remains in catechol form. Both OH groups intact. Maximum hydrogen bonding. <strong style="color:#00e5c8">Adhesion is strongest (~40 kPa).</strong>`;
+    } else if(phVal<7){
+      phStatus.innerHTML=`<span class="status-badge" style="background:rgba(255,179,71,0.12);color:#ffb347;display:inline-block;padding:0.2rem 0.6rem;border-radius:2px;font-size:0.65rem;">Transitioning → Dopaquinone</span><br><br>
+        At pH ${phVal.toFixed(1)}: Partial oxidation — one OH group losing H⁺. Ring electrons shifting. Mfp-6 antioxidant protein partially compensating. <strong style="color:#ffb347">Adhesion declining.</strong>`;
+    } else {
+      phStatus.innerHTML=`<span class="status-badge" style="background:rgba(255,69,96,0.12);color:#ff4560;display:inline-block;padding:0.2rem 0.6rem;border-radius:2px;font-size:0.65rem;">❌ Fully Oxidized — Dopaquinone</span><br><br>
+        At pH ${phVal.toFixed(1)}: DOPA fully converted to dopaquinone. Both OH → C=O. Catechol ring lost. Bond to surface <strong style="color:#ff4560">completely broken.</strong> This is why mussels maintain pH≈5 at plaque.`;
+    }
+    // Mol label
+    if(molLabel){
+      if(phVal<5.5){molLabel.textContent='Catechol — Active';molLabel.className='ph-molecule-label active';}
+      else if(phVal<7){molLabel.textContent='Partially Oxidizing';molLabel.className='ph-molecule-label partial';}
+      else{molLabel.textContent='Dopaquinone — Inactive';molLabel.className='ph-molecule-label oxidised';}
+    }
+  });
+
+  function animate(){
+    requestAnimationFrame(animate);
+    phT+=0.016;
+    const ox=(phVal-3)/6; // 0=fresh, 1=fully oxidized
+
+    // Ring rotation (slows with oxidation)
+    ringGroup.rotation.y=phT*0.08*(1-ox*0.7);
+    ringGroup.rotation.x=Math.sin(phT*0.3)*0.08*(1-ox*0.5);
+
+    // Ring atom color: grey→teal→orange→brown
+    ringAtoms.forEach((a,i)=>{
+      if(ox<0.33){
+        a.material.color.lerp(new THREE.Color(0x1a5050),0.05);
+        a.material.emissive.lerp(new THREE.Color(0x003030),0.05);
+        a.material.emissiveIntensity=0.2+Math.sin(phT*2+i)*0.1;
+      } else if(ox<0.66){
+        a.material.color.lerp(new THREE.Color(0x5a3010),0.04);
+        a.material.emissive.lerp(new THREE.Color(0x3a1800),0.04);
+      } else {
+        a.material.color.lerp(new THREE.Color(0x7a3000),0.04);
+        a.material.emissive.lerp(new THREE.Color(0x5a1500),0.04);
+        a.material.emissiveIntensity=0.4+Math.sin(phT*1.5+i)*0.15;
+      }
+    });
+
+    // Ring bonds color
+    ringBonds.forEach(rb=>{
+      if(ox<0.33)rb.material.color.setHex(0x2a7070);
+      else if(ox<0.66)rb.material.color.setHex(0x885520);
+      else rb.material.color.setHex(0x995500);
+    });
+
+    // OH groups: drift away as pH rises
+    ohMeshes.forEach((oh,i)=>{
+      const gi=Math.floor(i/3); // which OH group (0 or 1)
+      const baseP=ohBasePos[gi]||new THREE.Vector3(0.6,0.8,0);
+      // OH drifts outward and fades with oxidation
+      const drift=Math.max(0,ox-0.3)*2.5;
+      const fadeT=Math.max(0,ox-0.2)*1.4;
+      const driftDir=gi===0?-1:1;
+      oh.position.x=baseP.x+driftDir*drift*0.8+Math.sin(phT*2+gi)*0.02;
+      oh.position.y=baseP.y+drift*0.5+Math.sin(phT*1.5+gi*1.2)*0.02;
+      oh.material.opacity=Math.max(0,1-fadeT);
+      if(oh.material.transparent===undefined)oh.material.transparent=true;
+      oh.material.transparent=true;
+      // Color shift
+      if(i%3===0){// O atom
+        oh.material.color.lerp(new THREE.Color(0x884400),0.04);
+        oh.material.emissive.lerp(new THREE.Color(0x442200),0.04);
+      }
+    });
+
+    // Quinone glow (C=O groups) appear at high pH
+    quinoneGlow.forEach((q,i)=>{
+      const targetOp=ox>0.6?(ox-0.6)/0.4:0;
+      q.material.opacity+=(targetOp-q.material.opacity)*0.05;
+      q.material.emissiveIntensity=1.5+Math.sin(phT*4+i)*0.8;
+      q.scale.setScalar(1+Math.sin(phT*3+i)*0.15);
+    });
+
+    // Bond line: teal → fades as pH rises, molecule floats up
+    const molFloatY=Math.max(0,ox-0.5)*3;
+    ringGroup.position.y=molFloatY;
+    const surfY=-2.85;
+    const bondArr2=bondLine.geometry.attributes.position;
+    bondArr2.setXYZ(0,0,ringGroup.position.y-1.1,0);
+    bondArr2.setXYZ(1,0,surfY,0);
+    bondArr2.needsUpdate=true;
+    const bondOp=Math.max(0,1-ox*2);
+    bondMat.opacity=bondOp;
+    bondGlow.material.opacity=bondOp;
+    bondGlow.material.emissiveIntensity=(1-ox)*2.5+Math.sin(phT*4)*0.5;
+    bondGlow.scale.setScalar(1+Math.sin(phT*3)*0.2);
+
+    // Point light color shifts
+    if(ox<0.33){phPL.color.setHex(0x00e5c8);phPL.intensity=2;}
+    else if(ox<0.66){phPL.color.setHex(0xffb347);phPL.intensity=1.5;}
+    else{phPL.color.setHex(0xff4400);phPL.intensity=0.8;}
+
+    // Orbit particles
+    orbitP.forEach((p,i)=>{
+      const speedMul=Math.max(0.1,1-ox*0.85);
+      p.userData.angle+=p.userData.speed*0.025*speedMul;
+      p.position.set(
+        Math.cos(p.userData.angle)*p.userData.radius,
+        ringGroup.position.y+p.userData.yOff+Math.sin(phT*0.5)*0.08,
+        Math.sin(p.userData.angle)*p.userData.radius
+      );
+      const oxColor=ox<0.33?new THREE.Color(0x00e5c8):ox<0.66?new THREE.Color(0xffb347):new THREE.Color(0xff4560);
+      p.material.color.lerp(oxColor,0.04);
+      p.material.emissive.lerp(oxColor,0.04);
+      p.material.opacity=Math.max(0.05,(1-ox*0.9)*(0.6+Math.sin(phT*2+i)*0.2));
+    });
+
+    // Break particles (emitted at high pH bond break)
+    breakP.forEach(bp=>{
+      if(bp.userData.life<=0){bp.material.opacity=0;return;}
+      bp.userData.life--;
+      bp.position.x+=bp.userData.vx;
+      bp.position.y+=bp.userData.vy;
+      bp.position.z+=bp.userData.vz;
+      bp.userData.vy-=0.004;
+      bp.material.opacity=(bp.userData.life/bp.userData.maxLife)*0.85;
+    });
+
+    renderer.render(scene,camera);
+  }
+  animate();
+})();
+
+
+// ============================================================
+// ADHESION vs WATER SIMULATOR (namespaced as s2)
+// ============================================================
+(function() {
+  const s2Canvas = document.getElementById('s2-sim-canvas');
+  if (!s2Canvas) return;
+
+  const s2Area = document.getElementById('s2-canvas-area');
+  const s2RendererInst = new THREE.WebGLRenderer({ canvas: s2Canvas, antialias: true, alpha: true });
+  s2RendererInst.setPixelRatio(Math.min(devicePixelRatio, 2));
+  s2RendererInst.autoClear = false;
+  s2RendererInst.setClearColor(0x04090f, 1);
+
+  const s2SceneL = new THREE.Scene(), s2SceneR = new THREE.Scene();
+  const s2CamL = new THREE.PerspectiveCamera(45,1,0.1,100);
+  const s2CamR = new THREE.PerspectiveCamera(45,1,0.1,100);
+  s2CamL.position.set(0,3,14); s2CamR.position.set(0,3,14);
+
+  let s2W, s2H;
+  function s2Resize() {
+    const r = s2Area.getBoundingClientRect();
+    s2W = r.width; s2H = r.height;
+    s2RendererInst.setSize(s2W, s2H);
+    s2CamL.aspect = (s2W/2)/s2H; s2CamL.updateProjectionMatrix();
+    s2CamR.aspect = (s2W/2)/s2H; s2CamR.updateProjectionMatrix();
+  }
+  s2Resize();
+  window.addEventListener('resize', s2Resize);
+
+  function s2Lights(scene) {
+    scene.add(new THREE.AmbientLight(0x0a1828, 4));
+    const d = new THREE.DirectionalLight(0xffffff, 1.2);
+    d.position.set(5,8,5); scene.add(d);
+    const p1 = new THREE.PointLight(0x00e5c8, 1.5, 25);
+    p1.position.set(-4,5,4); scene.add(p1);
+    const p2 = new THREE.PointLight(0x4db8ff, 0.8, 20);
+    p2.position.set(4,-2,3); scene.add(p2);
+  }
+  s2Lights(s2SceneL); s2Lights(s2SceneR);
+
+  // Surface
+  function s2MakeSurface(scene) {
+    const geo = new THREE.BoxGeometry(10,0.5,3);
+    const mat = new THREE.MeshStandardMaterial({ color:0x1a2535, roughness:0.8, metalness:0.2 });
+    const plate = new THREE.Mesh(geo, mat);
+    plate.position.y = -3.5; scene.add(plate);
+    const sAtoms = [];
+    for (let ix=-4;ix<=4;ix++) for (let iz=-1;iz<=1;iz++) {
+      const sg = new THREE.SphereGeometry(0.18,8,8);
+      const sm = new THREE.MeshStandardMaterial({ color:0x2a3f55, roughness:0.7, metalness:0.4, transparent:true, opacity:0 });
+      const s = new THREE.Mesh(sg, sm);
+      s.position.set(ix*1.0,-3.26,iz*0.9); scene.add(s); sAtoms.push(s);
+    }
+    const lm = new THREE.LineBasicMaterial({ color:0x2a4060, transparent:true, opacity:0.4 });
+    for (let i=-4;i<=4;i++) {
+      const pts=[new THREE.Vector3(i,-3.24,-1.5),new THREE.Vector3(i,-3.24,1.5)];
+      scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), lm));
+    }
+    return { plate, sAtoms };
+  }
+  const s2SurfL = s2MakeSurface(s2SceneL);
+  const s2SurfR = s2MakeSurface(s2SceneR);
+
+  // Adhesive molecules
+  function s2MakeMols(scene, isLeft) {
+    const color = isLeft?0xff6b35:0x00e5c8;
+    const emissive = isLeft?0x441500:0x003830;
+    const mols = [];
+    const xs = [-3.5,-2.5,-1.5,-0.5,0.5,1.5,2.5,3.5];
+    xs.forEach((x,i) => {
+      const geo = new THREE.SphereGeometry(0.32,14,14);
+      const mat = new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity:0.3, roughness:0.25, metalness:0.1 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(x,-2.8,(i%2===0?-0.4:0.4));
+      if (!isLeft) {
+        const rg = new THREE.TorusGeometry(0.22,0.05,6,18);
+        const rm = new THREE.MeshStandardMaterial({ color:0x00aa90, roughness:0.4 });
+        const ring = new THREE.Mesh(rg, rm);
+        ring.position.set(0,-0.3,0); ring.rotation.x=Math.PI/2; mesh.add(ring);
+        [0,1].forEach(si => {
+          const og=new THREE.SphereGeometry(0.1,8,8);
+          const om=new THREE.MeshStandardMaterial({color:0xff4444,emissive:0xff2200,emissiveIntensity:0.4});
+          const oh=new THREE.Mesh(og,om); oh.position.set(si===0?-0.28:0.28,-0.42,0); mesh.add(oh);
+        });
+      }
+      scene.add(mesh);
+      const bGeo=new THREE.BufferGeometry();
+      const bPts=new Float32Array(6);
+      bGeo.setAttribute('position',new THREE.BufferAttribute(bPts,3));
+      const bMat=new THREE.LineBasicMaterial({ color:isLeft?0xffd166:0x00e5c8, transparent:true, opacity:0.9, linewidth:2 });
+      const bLine=new THREE.Line(bGeo,bMat); scene.add(bLine);
+      const gGeo=new THREE.SphereGeometry(0.08,8,8);
+      const gMat=new THREE.MeshStandardMaterial({ color:isLeft?0xffd166:0x00e5c8, emissive:isLeft?0xffd166:0x00e5c8, emissiveIntensity:1.5, transparent:true, opacity:0.8 });
+      const glow=new THREE.Mesh(gGeo,gMat);
+      glow.position.set(x,-3.25,mesh.position.z); scene.add(glow);
+      mols.push({ mesh, bondLine:bLine, glow, baseX:x, baseY:-2.8, velY:0, velX:0, phase:Math.random()*Math.PI*2, bonded:true });
+    });
+    return mols;
+  }
+  const s2MolsL = s2MakeMols(s2SceneL, true);
+  const s2MolsR = s2MakeMols(s2SceneR, false);
+
+  // Water molecules
+  function s2MakeWater(scene) {
+    const waters=[];
+    for (let i=0;i<24;i++) {
+      const group=new THREE.Group();
+      const og=new THREE.SphereGeometry(0.18,10,10);
+      const om=new THREE.MeshStandardMaterial({ color:0x4db8ff, emissive:0x1166cc, emissiveIntensity:0.4, transparent:true, opacity:0, roughness:0.2 });
+      group.add(new THREE.Mesh(og,om));
+      const hm=new THREE.MeshStandardMaterial({ color:0xaaddff, emissive:0x4488aa, emissiveIntensity:0.2, transparent:true, opacity:0, roughness:0.3 });
+      [-0.22,0.22].forEach(xOff=>{
+        const hg=new THREE.SphereGeometry(0.1,8,8); const H=new THREE.Mesh(hg,hm.clone());
+        H.position.set(xOff,0.2,0); group.add(H);
+      });
+      [0,1].forEach(hi=>{
+        const pts=[new THREE.Vector3(0,0,0),group.children[hi+1].position.clone()];
+        const lg=new THREE.BufferGeometry().setFromPoints(pts);
+        const lm=new THREE.LineBasicMaterial({color:0x6699cc,transparent:true,opacity:0});
+        group.add(new THREE.Line(lg,lm));
+      });
+      const sx=(Math.random()-0.5)*9;
+      group.position.set(sx,6+Math.random()*4,(Math.random()-0.5)*2.5);
+      group.userData={ startX:sx, targetY:-2.8+(Math.random()-0.5)*0.6, phase:Math.random()*Math.PI*2, speed:0.015+Math.random()*0.012, active:false, landed:false, driftVX:(Math.random()-0.5)*0.03 };
+      scene.add(group); waters.push(group);
+    }
+    return waters;
+  }
+  const s2WatersL = s2MakeWater(s2SceneL);
+  const s2WatersR = s2MakeWater(s2SceneR);
+
+  // Molecular extras
+  function s2MakeExtras(scene, isLeft) {
+    const group=new THREE.Group();
+    if (!isLeft) {
+      const ringPts=[];
+      for(let i=0;i<7;i++){const a=i*Math.PI/3;ringPts.push(new THREE.Vector3(Math.cos(a)*0.5,0,Math.sin(a)*0.5));}
+      const rg=new THREE.BufferGeometry().setFromPoints(ringPts);
+      const rm=new THREE.LineBasicMaterial({color:0x00e5c8,transparent:true,opacity:0});
+      group.add(new THREE.Line(rg,rm));
+      [-0.8,0.8].forEach((xOff,bi)=>{
+        const bG=new THREE.BufferGeometry();
+        const bPts=new Float32Array([xOff,-2.6,0,xOff*1.1,-3.25,0]);
+        bG.setAttribute('position',new THREE.BufferAttribute(bPts,3));
+        const bM=new THREE.LineBasicMaterial({color:bi===0?0x00ffcc:0x00e5c8,transparent:true,opacity:0,linewidth:3});
+        group.add(new THREE.Line(bG,bM));
+        const gG=new THREE.SphereGeometry(0.12,8,8);
+        const gM=new THREE.MeshStandardMaterial({color:0x00e5c8,emissive:0x00e5c8,emissiveIntensity:2,transparent:true,opacity:0});
+        const g=new THREE.Mesh(gG,gM); g.position.set(xOff*1.1,-3.25,0); group.add(g);
+      });
+    }
+    group.visible=false; scene.add(group); return group;
+  }
+  const s2ExtraL=s2MakeExtras(s2SceneL,true);
+  const s2ExtraR=s2MakeExtras(s2SceneR,false);
+
+  // State
+  let s2Step=0, s2Progress=0, s2Auto=false, s2AutoTimer=0;
+  let s2TargetCamY=3, s2TargetCamZ=14;
+
+  const s2StepInfo=[
+    { water:0, waterLabel:'0% — Dry conditions', info:'Both adhesives bond easily on a dry surface. No competing forces present.', principle:'Dry adhesion works equally for all materials.', statusL:'bonded', statusR:'bonded', textL:'BONDED', textR:'BONDED', bondsL:8, bondsR:8 },
+    { water:100, waterLabel:'100% — Fully submerged', info:'Water molecules flood in. Normal adhesive is disrupted — water wedges between molecules and surface, breaking all bonds. DOPA resists via catechol chemistry.', principle:'DOPA displaces water using catechol-OH interactions with surface atoms.', statusL:'broken', statusR:'bonded', textL:'❌ DETACHED', textR:'✅ HOLDING', bondsL:0, bondsR:7 },
+    { water:100, waterLabel:'100% — Molecular scale', info:'At molecular scale: water blocks normal adhesive completely. DOPA catechol groups pierce through, forming direct hydrogen and coordination bonds with surface atoms.', principle:'Catechol-OH groups displace water and form multi-modal bonds: H-bond + covalent + metal coordination.', statusL:'broken', statusR:'bonded', textL:'❌ NO CONTACT', textR:'✅ DIRECT BOND', bondsL:0, bondsR:8 }
+  ];
+
+  window.s2SetStep = function(s) {
+    s2Step=s; s2Progress=0;
+    document.querySelectorAll('.sw-step-btn').forEach((b,i)=>b.classList.toggle('active',i===s));
+    const si=s2StepInfo[s];
+    document.getElementById('s2-water-bar').style.width=si.water+'%';
+    document.getElementById('s2-water-pct').textContent=si.waterLabel;
+    document.getElementById('s2-info-text').textContent=si.info;
+    document.getElementById('s2-principle-text').textContent=si.principle;
+    const sl=document.getElementById('s2-status-left'), sr=document.getElementById('s2-status-right');
+    sl.className='sw-status '+si.statusL+' sw-status-left';
+    sr.className='sw-status '+si.statusR+' sw-status-right';
+    document.getElementById('s2-status-left-text').textContent=si.textL;
+    document.getElementById('s2-status-right-text').textContent=si.textR;
+    s2AnimBonds(si.bondsL, si.bondsR);
+    if(s===0) s2Reset0();
+    else if(s===1) s2ActivateWater();
+    else if(s===2) s2ActivateMolView();
+  };
+
+  function s2Reset0() {
+    s2MolsL.forEach(m=>{m.bonded=true;m.velY=0;m.velX=0;m.mesh.position.set(m.baseX,-2.8,m.mesh.position.z);});
+    s2MolsR.forEach(m=>{m.bonded=true;m.velY=0;m.velX=0;m.mesh.position.set(m.baseX,-2.8,m.mesh.position.z);});
+    [...s2WatersL,...s2WatersR].forEach(w=>{w.position.y=8;w.userData.active=false;w.userData.landed=false;w.children.forEach(c=>{if(c.material)c.material.opacity=0;});});
+    [...s2SurfL.sAtoms,...s2SurfR.sAtoms].forEach(a=>a.material.opacity=0);
+    s2ExtraL.visible=false;s2ExtraR.visible=false;
+    s2TargetCamY=3;s2TargetCamZ=14;
+  }
+  function s2ActivateWater() {
+    s2MolsL.forEach(m=>{m.mesh.position.set(m.baseX,-2.8,m.mesh.position.z);m.velY=0;m.velX=0;m.bonded=true;});
+    s2MolsR.forEach(m=>{m.mesh.position.set(m.baseX,-2.8,m.mesh.position.z);m.velY=0;m.velX=0;m.bonded=true;});
+    s2WatersL.forEach(w=>{w.userData.active=true;w.userData.landed=false;w.position.y=6+Math.random()*3;});
+    s2WatersR.forEach(w=>{w.userData.active=true;w.userData.landed=false;w.position.y=6+Math.random()*3;});
+    [...s2SurfL.sAtoms,...s2SurfR.sAtoms].forEach(a=>a.material.opacity=0);
+    s2ExtraL.visible=false;s2ExtraR.visible=false;
+    s2TargetCamY=3;s2TargetCamZ=14;
+  }
+  function s2ActivateMolView() {
+    s2TargetCamY=1;s2TargetCamZ=9;
+    s2SurfL.sAtoms.forEach(a=>a.material.opacity=1);
+    s2SurfR.sAtoms.forEach(a=>a.material.opacity=1);
+    s2ExtraL.visible=true;s2ExtraR.visible=true;
+    s2ExtraR.children.forEach(c=>{if(c.material)c.material.opacity=1;});
+    s2MolsL.forEach(m=>{m.bonded=false;if(m.mesh.position.y<1)m.mesh.position.y=1+Math.random();});
+  }
+
+  function s2AnimBonds(l,r){
+    const el=document.getElementById('s2-bonds-left'), er=document.getElementById('s2-bonds-right');
+    let cl=parseInt(el.textContent)||0, cr=parseInt(er.textContent)||0;
+    const iv=setInterval(()=>{
+      if(cl!==l)cl+=(cl<l?1:-1);
+      if(cr!==r)cr+=(cr<r?1:-1);
+      el.textContent=cl; er.textContent=cr;
+      if(cl===l&&cr===r)clearInterval(iv);
+    },80);
+  }
+
+  window.s2ToggleAutoplay=function(){
+    s2Auto=!s2Auto; s2AutoTimer=0;
+    const btn=document.getElementById('s2-autoplay-btn');
+    btn.textContent=s2Auto?'⏹ Stop':'▶ Auto-Play';
+    btn.classList.toggle('playing',s2Auto);
+  };
+
+  function s2UpdateMols(mols,waters,isLeft,t){
+    mols.forEach((m,idx)=>{
+      const mesh=m.mesh;
+      if(s2Step===0){
+        m.bonded=true;
+        mesh.position.x+=(m.baseX-mesh.position.x)*0.1;
+        mesh.position.y+=(-2.8-mesh.position.y)*0.1;
+        mesh.rotation.y=Math.sin(t*0.5+m.phase)*0.1;
+      } else if(s2Step===1){
+        if(isLeft){
+          let near=false;
+          waters.forEach(w=>{if(Math.abs(w.position.x-mesh.position.x)<1.0&&Math.abs(w.position.y-(-2.5))<0.8&&w.userData.landed)near=true;});
+          if(near&&m.bonded){m.bonded=false;m.velY=0.04+Math.random()*0.03;m.velX=(Math.random()-0.5)*0.06;}
+          if(!m.bonded){m.velY*=0.96;m.velX*=0.97;mesh.position.y+=m.velY;mesh.position.x+=m.velX;mesh.rotation.z+=0.02;mesh.rotation.y+=0.015;}
+          else{mesh.position.y+=(-2.8-mesh.position.y)*0.05;}
+        } else {
+          m.bonded=true;
+          mesh.position.x+=(m.baseX-mesh.position.x)*0.08;
+          mesh.position.y+=(-2.8-mesh.position.y)*0.08;
+          mesh.rotation.y=Math.sin(t*0.8+m.phase)*0.06;
+        }
+      } else {
+        if(isLeft){m.bonded=false;mesh.position.y+=(1.5-mesh.position.y)*0.03;mesh.rotation.z=Math.sin(t*0.3+m.phase)*0.1;}
+        else{m.bonded=true;mesh.position.x+=(m.baseX-mesh.position.x)*0.06;mesh.position.y+=(-2.65-mesh.position.y)*0.06;}
+      }
+      const p=m.bondLine.geometry.attributes.position;
+      const surfY=-3.25;
+      p.setXYZ(0,mesh.position.x,mesh.position.y-0.3,mesh.position.z);
+      p.setXYZ(1,mesh.position.x,surfY,mesh.position.z);
+      p.needsUpdate=true;
+      const dy=mesh.position.y-(-2.8);
+      const bondVis=m.bonded&&dy<0.5;
+      const tOp=bondVis?0.9:0;
+      m.bondLine.material.opacity+=(tOp-m.bondLine.material.opacity)*0.12;
+      m.glow.material.opacity+=(tOp*0.8-m.glow.material.opacity)*0.12;
+      m.glow.position.set(mesh.position.x,surfY,mesh.position.z);
+      if(m.bonded)m.glow.material.emissiveIntensity=1.5+Math.sin(t*4+idx)*0.5;
+    });
+  }
+
+  function s2UpdateWater(waters,mols,isLeft,t){
+    waters.forEach(w=>{
+      if(!w.userData.active)return;
+      const ud=w.userData;
+      if(!ud.landed){
+        w.position.y-=ud.speed*(1+Math.sin(t*2+ud.phase)*0.1);
+        w.position.x+=Math.sin(t*1.5+ud.phase)*0.008;
+        w.children.forEach(c=>{if(c.material&&c.material.opacity!==undefined)c.material.opacity=Math.min(c.material.opacity+0.015,0.85);});
+        if(w.position.y<=ud.targetY){ud.landed=true;w.position.y=ud.targetY;}
+      } else {
+        w.position.y=ud.targetY+Math.sin(t*2+ud.phase)*0.06;
+        w.position.x+=ud.driftVX;
+        if(w.position.x>4.5)ud.driftVX*=-1;
+        if(w.position.x<-4.5)ud.driftVX*=-1;
+        w.rotation.y=t*0.5+ud.phase;
+      }
+      if(!isLeft){
+        mols.forEach(m=>{
+          const dx=w.position.x-m.mesh.position.x, dy=w.position.y-m.mesh.position.y;
+          const dist=Math.sqrt(dx*dx+dy*dy);
+          if(dist<0.9){const force=(0.9-dist)*0.03;w.position.x+=dx/dist*force;w.position.y+=dy/dist*force;if(w.position.y<ud.targetY)w.position.y=ud.targetY;}
+        });
+      }
+    });
+  }
+
+  let s2T=0;
+  function s2Animate(){
+    requestAnimationFrame(s2Animate);
+    s2T+=0.016;
+    s2Progress=Math.min(1,s2Progress+0.008);
+    s2CamL.position.y+=(s2TargetCamY-s2CamL.position.y)*0.04;
+    s2CamL.position.z+=(s2TargetCamZ-s2CamL.position.z)*0.04;
+    s2CamR.position.y+=(s2TargetCamY-s2CamR.position.y)*0.04;
+    s2CamR.position.z+=(s2TargetCamZ-s2CamR.position.z)*0.04;
+    s2CamL.lookAt(0,-1,0); s2CamR.lookAt(0,-1,0);
+    s2UpdateMols(s2MolsL,s2WatersL,true,s2T);
+    s2UpdateMols(s2MolsR,s2WatersR,false,s2T);
+    s2UpdateWater(s2WatersL,s2MolsL,true,s2T);
+    s2UpdateWater(s2WatersR,s2MolsR,false,s2T);
+    if(s2ExtraR.visible){
+      s2ExtraR.children.forEach((c,i)=>{if(c.material&&c.material.emissive)c.material.emissiveIntensity=1.5+Math.sin(s2T*3+i)*0.8;});
+    }
+    if(s2Auto){
+      s2AutoTimer+=0.016;
+      if(s2AutoTimer>=3.5){s2AutoTimer=0;s2SetStep((s2Step+1)%3);}
+    }
+    s2RendererInst.clear();
+    const hw=s2W/2;
+    s2RendererInst.setViewport(0,0,hw,s2H); s2RendererInst.setScissor(0,0,hw,s2H);
+    s2RendererInst.setScissorTest(true); s2RendererInst.render(s2SceneL,s2CamL);
+    s2RendererInst.setViewport(hw,0,hw,s2H); s2RendererInst.setScissor(hw,0,hw,s2H);
+    s2RendererInst.render(s2SceneR,s2CamR);
+  }
+
+  s2SetStep(0);
+  s2Animate();
+})();
+
+
+// ============================================================
+// PARAMETER SIMULATOR ENGINE (namespaced: ps*) — LIVE REACTIVE VERSION
+// ============================================================
+(function() {
+
+  // ─── State ───────────────────────────────────────────────
+  const psState = {
+    pH: 5.0, water: 1, dopa: 2,
+    metalIons: true, surface: 'metalOxide',
+    oxidation: 1, protein: 'mfp5',
+    running: false, step: 0
+  };
+
+  // ─── Adhesion formula ────────────────────────────────────
+  function psCalcStrength(s) {
+    const pHFactor = Math.exp(-0.5 * ((s.pH - 5.0) / 1.8) ** 2);
+    const waterF   = [0.96, 0.70, 0.42][s.water];
+    const dopaF    = [0.32, 0.65, 1.00][s.dopa];
+    const metalF   = s.metalIons ? 1.38 : 1.0;
+    const surfF    = { hydrophobic:0.62, hydrophilic:0.88, metalOxide:1.22 }[s.surface] || 1.0;
+    let   oxRed    = s.oxidation * 0.19;
+    if (s.protein === 'mfp6') oxRed *= 0.35;
+    const oxidF    = Math.max(0.08, 1 - oxRed);
+    const protF    = { mfp3:0.86, mfp5:1.0, mfp6:0.74 }[s.protein] || 1.0;
+    return Math.max(0.5, Math.min(40, 40 * pHFactor * waterF * dopaF * metalF * surfF * oxidF * protF));
+  }
+
+  function psGetBonds(s) {
+    return {
+      hbond : psCalcStrength(s) > 3,
+      cov   : s.pH < 6.5 && s.dopa > 0 && s.oxidation < 3,
+      metal : s.metalIons && (s.surface === 'metalOxide' || s.surface === 'hydrophilic'),
+      pi    : s.surface === 'hydrophobic' && s.dopa > 0
+    };
+  }
+
+  function psGetFailure(s) {
+    const m = [];
+    if (s.pH > 7.2)              m.push('DOPA oxidized — catechol to quinone at pH ' + s.pH.toFixed(1));
+    if (s.dopa === 0)             m.push('Insufficient bonding sites — increase DOPA concentration');
+    if (s.oxidation >= 3)        m.push('High oxidation level — DOPA converting to dopaquinone');
+    if (s.water===2 && s.pH > 6) m.push('Dual challenge: hydration barrier + DOPA oxidation');
+    return m;
+  }
+
+  // ─── UI output (called on every control change) ──────────
+  function psLiveUpdate() {
+    const str = psCalcStrength(psState);
+    let col, cBdr, cBg, txt;
+    if (str < 8)  { col='#ff4560'; cBdr='rgba(255,69,96,0.3)';  cBg='rgba(255,69,96,0.07)';  txt='Weak';     }
+    else if(str<20){ col='#ffb347'; cBdr='rgba(255,179,71,0.3)'; cBg='rgba(255,179,71,0.07)'; txt='Moderate'; }
+    else           { col='#00e5c8'; cBdr='rgba(6,214,160,0.3)';  cBg='rgba(6,214,160,0.07)';  txt='Strong';   }
+    const fullTxt = str<8 ? '❌ Weak' : str<20 ? 'Moderate' : '✅ Strong';
+
+    const set = (id, fn) => { const el=document.getElementById(id); if(el) fn(el); };
+    set('ps-kpa',    e => { e.textContent=str.toFixed(1); e.style.color=col; });
+    set('ps-badge',  e => { e.textContent=fullTxt; e.style.color=col; e.style.borderColor=cBdr; e.style.background=cBg; });
+    set('pshud-val', e => { e.textContent=str.toFixed(1); e.style.color=col; });
+    set('pshud-bar', e => { e.style.width=(str/40*100)+'%'; e.style.background=col; });
+    set('pshud-status',e=>{ e.textContent=txt; e.style.color=col; e.style.borderColor=cBdr; e.style.background=cBg; });
+    set('ps-sbar-fill', e => { e.style.width=(str/40*100)+'%'; });
+    set('ps-sbar-val',  e => { e.textContent=str.toFixed(1)+' kPa'; e.style.color=col; });
+    set('ps-sbar-badge',e => { e.textContent=fullTxt; e.style.color=col; e.style.borderColor=cBdr; e.style.background=cBg; });
+
+    const bonds = psGetBonds(psState);
+    ['hbond','cov','metal','pi'].forEach(k => {
+      const el=document.getElementById('psb-'+k); if(el) el.classList.toggle('active', bonds[k]);
+    });
+
+    const fails = psGetFailure(psState);
+    set('ps-failure', e => { e.innerHTML=fails.map(m=>'⚠ '+m).join('<br>'); e.style.display=fails.length?'block':'none'; });
+    set('ps-success', e => { e.style.display=(!fails.length && str>=20)?'block':'none'; });
+
+    psDrawGauge(str);
+    psDrawGraphPH(psState.pH);
+    psDrawGraphDopa(psState.dopa);
+  }
+
+  // ─── Control handlers ─────────────────────────────────────
+  window.psUpdate  = (key,val) => { psState[key]=val; psLiveUpdate(); };
+  window.psToggle  = (key,tid) => {
+    psState[key]=!psState[key];
+    document.getElementById(tid).classList.toggle('on',psState[key]);
+    const l=document.getElementById('ps-metal-label');
+    if(l) l.textContent=psState.metalIons?'Active — coordination bonds enabled':'Off — no metal coordination';
+    psLiveUpdate();
+  };
+  window.psSegSel  = (key,val,btn) => {
+    psState[key]=val;
+    btn.parentElement.querySelectorAll('.ps-seg-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    psLiveUpdate();
+  };
+
+  // ─── Canvas 2D helpers ────────────────────────────────────
+  function psDrawGauge(s) {
+    const c=document.getElementById('ps-gauge-canvas'); if(!c||!c.offsetWidth) return;
+    const dpr=window.devicePixelRatio||1;
+    c.width=c.offsetWidth*dpr; c.height=110*dpr;
+    const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+    const W=c.offsetWidth, H=110, cx=W/2, cy=92, r=64;
+    ctx.clearRect(0,0,W,H);
+    // Track
+    ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,0);
+    ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
+    // Fill
+    if(s>0){
+      const pct=s/40;
+      const g=ctx.createLinearGradient(cx-r,cy,cx+r,cy);
+      g.addColorStop(0,'#00e5c8'); g.addColorStop(0.5,'#ffb347'); g.addColorStop(1,'#ff4560');
+      ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,Math.PI-pct*Math.PI,false);
+      ctx.strokeStyle=g; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
+    }
+    // Ticks
+    [0,.25,.5,.75,1].forEach(f=>{
+      const a=Math.PI-f*Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(cx+(r-13)*Math.cos(a),cy+(r-13)*Math.sin(a));
+      ctx.lineTo(cx+(r-6)*Math.cos(a), cy+(r-6)*Math.sin(a));
+      ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1.5; ctx.stroke();
+    });
+    // Outer zone ring
+    [['#ff4560',0,1/3],['#ffb347',1/3,2/3],['#00e5c8',2/3,1]].forEach(([col,f0,f1])=>{
+      ctx.beginPath();
+      ctx.arc(cx,cy,r+7, Math.PI-f1*Math.PI, Math.PI-f0*Math.PI, false);
+      ctx.strokeStyle=col; ctx.lineWidth=3; ctx.globalAlpha=0.35; ctx.stroke(); ctx.globalAlpha=1;
+    });
+    // Needle
+    const na=Math.PI-(s/40)*Math.PI;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+(r-20)*Math.cos(na),cy+(r-20)*Math.sin(na));
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='8px JetBrains Mono,monospace';
+    ctx.textAlign='left';  ctx.fillText('0',  cx-r+2, cy+14);
+    ctx.textAlign='center';ctx.fillText('20', cx,     cy-r-4);
+    ctx.textAlign='right'; ctx.fillText('40', cx+r-2, cy+14);
+  }
+
+  function psDrawGraphPH(cur) {
+    const c=document.getElementById('ps-graph-ph'); if(!c||!c.offsetWidth) return;
+    const dpr=window.devicePixelRatio||1;
+    c.width=c.offsetWidth*dpr; c.height=80*dpr;
+    const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+    const W=c.offsetWidth, H=80; ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='rgba(0,229,200,0.03)'; ctx.fillRect(0,0,W,H);
+    ctx.beginPath();
+    for(let i=0;i<=60;i++){
+      const pH=3+(i/60)*6, x=(i/60)*(W-16)+8;
+      const y=H-8-(psCalcStrength({...psState,pH})/40)*(H-16);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    const g=ctx.createLinearGradient(0,0,W,0);
+    g.addColorStop(0,'#00e5c8'); g.addColorStop(.45,'#ffb347'); g.addColorStop(1,'#ff4560');
+    ctx.strokeStyle=g; ctx.lineWidth=2; ctx.stroke();
+    ctx.lineTo(W-8,H-8); ctx.lineTo(8,H-8); ctx.closePath();
+    ctx.fillStyle='rgba(0,229,200,0.06)'; ctx.fill();
+    const mx=((cur-3)/6)*(W-16)+8;
+    const my=H-8-(psCalcStrength(psState)/40)*(H-16);
+    ctx.beginPath(); ctx.arc(mx,my,5,0,Math.PI*2);
+    ctx.fillStyle='#030810'; ctx.fill(); ctx.strokeStyle='#00e5c8'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.2)'; ctx.font='7px JetBrains Mono,monospace';
+    ctx.textAlign='left'; ctx.fillText('pH 3',4,H-2); ctx.textAlign='right'; ctx.fillText('pH 9',W-2,H-2);
+  }
+
+  function psDrawGraphDopa(cur) {
+    const c=document.getElementById('ps-graph-dopa'); if(!c||!c.offsetWidth) return;
+    const dpr=window.devicePixelRatio||1;
+    c.width=c.offsetWidth*dpr; c.height=80*dpr;
+    const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+    const W=c.offsetWidth, H=80; ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='rgba(0,229,200,0.03)'; ctx.fillRect(0,0,W,H);
+    const cols=['#ff4560','#ffb347','#00e5c8'], labels=['Low','Medium','High'];
+    const bw=(W-32)/3;
+    [0,1,2].forEach(d=>{
+      const s=psCalcStrength({...psState,dopa:d}), bh=Math.max(4,(s/40)*(H-16));
+      const x=8+d*(bw+8);
+      if(d===cur){
+        const g=ctx.createLinearGradient(0,H-8-bh,0,H-8);
+        g.addColorStop(0,cols[d]); g.addColorStop(1,cols[d]+'33');
+        ctx.fillStyle=g;
+      } else { ctx.fillStyle='rgba(255,255,255,0.06)'; }
+      ctx.fillRect(x,H-8-bh,bw,bh);
+      if(d===cur){ ctx.strokeStyle=cols[d]; ctx.lineWidth=1.5; ctx.strokeRect(x,H-8-bh,bw,bh); }
+      ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='7px JetBrains Mono,monospace';
+      ctx.textAlign='center'; ctx.fillText(labels[d],x+bw/2,H-1);
+    });
+  }
+
+  // ─── THREE.JS SCENE ───────────────────────────────────────
+  const psCanvas=document.getElementById('ps-canvas'); if(!psCanvas) return;
+  const psScn=new THREE.Scene();
+  const psCam=new THREE.PerspectiveCamera(45,1,0.1,100);
+  psCam.position.set(0,2,14);
+  const psRen=new THREE.WebGLRenderer({canvas:psCanvas,antialias:true,alpha:true});
+  psRen.setPixelRatio(Math.min(devicePixelRatio,2));
+  psRen.setClearColor(0x030810,1);
+
+  function psResize(){
+    const box=psCanvas.parentElement;
+    const w=box.clientWidth, h=Math.max(200,box.clientHeight-36);
+    psCanvas.style.height=h+'px';
+    psCam.aspect=w/h; psCam.updateProjectionMatrix(); psRen.setSize(w,h);
+  }
+  psResize();
+  window.addEventListener('resize',()=>{ psResize(); psLiveUpdate(); });
+
+  // Lights
+  psScn.add(new THREE.AmbientLight(0x0a1828,4));
+  const psDL=new THREE.DirectionalLight(0xffffff,1.2); psDL.position.set(5,8,5); psScn.add(psDL);
+  const _pspl1=new THREE.PointLight(0x00e5c8,1.5,25); _pspl1.position.set(-4,5,4); psScn.add(_pspl1);
+  const _pspl2=new THREE.PointLight(0x4db8ff,0.8,20); _pspl2.position.set(4,-2,3); psScn.add(_pspl2);
+  const psMetalPL=new THREE.PointLight(0xffb347,0,15); psMetalPL.position.set(0,0,3); psScn.add(psMetalPL);
+  const psHydPL  =new THREE.PointLight(0xa78bfa,0,15); psHydPL.position.set(0,1,3);  psScn.add(psHydPL);
+
+  // Surface plate
+  const psSurfMat=new THREE.MeshStandardMaterial({color:0x1a2535,roughness:0.85,metalness:0.25});
+  const psSurf=new THREE.Mesh(new THREE.BoxGeometry(11,0.5,3.5),psSurfMat);
+  psSurf.position.y=-3.5; psScn.add(psSurf);
+
+  // Surface atoms
+  const psSAtoms=[], psSAtomMat=new THREE.MeshStandardMaterial({color:0x2a3f55,roughness:0.7,metalness:0.5});
+  for(let ix=-5;ix<=5;ix++) for(let iz=-1;iz<=1;iz++){
+    const s=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,8),psSAtomMat.clone());
+    s.position.set(ix,-3.25,iz*0.9); psScn.add(s); psSAtoms.push(s);
+  }
+
+  // Water molecules
+  const psWaterMols=[];
+  for(let i=0;i<20;i++){
+    const grp=new THREE.Group();
+    const oMat=new THREE.MeshStandardMaterial({color:0x4db8ff,emissive:0x1166cc,emissiveIntensity:0.4,transparent:true,opacity:0,roughness:0.2});
+    const hMat=new THREE.MeshStandardMaterial({color:0xaaddff,transparent:true,opacity:0,roughness:0.3});
+    grp.add(new THREE.Mesh(new THREE.SphereGeometry(0.17,10,10),oMat));
+    [-0.2,0.2].forEach(xo=>{ const h=new THREE.Mesh(new THREE.SphereGeometry(0.09,8,8),hMat.clone()); h.position.set(xo,0.18,0); grp.add(h); });
+    grp.position.set((Math.random()-0.5)*10, -30, (Math.random()-0.5)*3); // start far below screen
+    grp.userData={ tY:-2.6+(Math.random()-0.5)*0.5, phase:Math.random()*Math.PI*2, speed:0.022+Math.random()*0.01, landed:false, dVX:(Math.random()-0.5)*0.025, active:false };
+    psScn.add(grp); psWaterMols.push(grp);
+  }
+
+  // Reusable color objects (avoid per-frame allocation)
+  const _dopaTgt=new THREE.Color(), _oxMix=new THREE.Color(0xff6600), _finalCol=new THREE.Color();
+  const _surfTgt=new THREE.Color(), _atomTgt=new THREE.Color();
+  const DOPA_COLS={ mfp3:0x4db8ff, mfp5:0x00e5c8, mfp6:0xa78bfa };
+  const SURF_COL ={ hydrophobic:0x1a1028, hydrophilic:0x081f2e, metalOxide:0x1a2535 };
+  const ATOM_COL ={ hydrophobic:0x2a1f35, hydrophilic:0x0f3045, metalOxide:0x1e4060 };
+  const ATOM_MET ={ hydrophobic:0.05, hydrophilic:0.15, metalOxide:0.75 };
+
+  // DOPA molecules
+  const psDOPAMols=[], psDOPABonds=[], psDOPAGlows=[];
+  for(let i=0;i<8;i++){
+    const x=(i-3.5)*1.4;
+    const molMat=new THREE.MeshStandardMaterial({color:0x00e5c8,emissive:0x003830,emissiveIntensity:0.3,roughness:0.25,metalness:0.1,transparent:true,opacity:1});
+    const mol=new THREE.Mesh(new THREE.SphereGeometry(0.3,14,14),molMat);
+    mol.position.set(x,-2.8,(i%2===0?-0.3:0.3));
+    // Catechol ring
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(0.2,0.045,6,16),new THREE.MeshStandardMaterial({color:0x00aa90,roughness:0.4}));
+    ring.position.set(0,-0.28,0); ring.rotation.x=Math.PI/2; mol.add(ring);
+    // OH groups — transparent from the start
+    [[-0.26,-0.38],[0.26,-0.38]].forEach(([ox,oy])=>{
+      const ohMat=new THREE.MeshStandardMaterial({color:0xff4444,emissive:0xff2200,emissiveIntensity:0.5,transparent:true,opacity:1});
+      const oh=new THREE.Mesh(new THREE.SphereGeometry(0.09,8,8),ohMat);
+      oh.position.set(ox,oy,0); mol.add(oh);
+    });
+    psScn.add(mol); psDOPAMols.push(mol);
+    mol.userData={ bX:x, bY:-2.8, phase:Math.random()*Math.PI*2 };
+
+    // Bond line
+    const bG=new THREE.BufferGeometry();
+    bG.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6),3));
+    const bL=new THREE.Line(bG,new THREE.LineBasicMaterial({color:0x00e5c8,transparent:true,opacity:0,linewidth:2}));
+    psScn.add(bL); psDOPABonds.push(bL);
+
+    // Glow dot at anchor
+    const gM=new THREE.MeshStandardMaterial({color:0x00e5c8,emissive:0x00e5c8,emissiveIntensity:2,transparent:true,opacity:0});
+    const glow=new THREE.Mesh(new THREE.SphereGeometry(0.09,8,8),gM);
+    glow.position.set(x,-3.25,mol.position.z); psScn.add(glow); psDOPAGlows.push(glow);
+  }
+
+  // Metal ions
+  const psMetalIons=[];
+  for(let i=0;i<5;i++){
+    const m=new THREE.MeshStandardMaterial({color:0xffb347,emissive:0xff8800,emissiveIntensity:0.8,transparent:true,opacity:0,roughness:0.2,metalness:0.6});
+    const ion=new THREE.Mesh(new THREE.SphereGeometry(0.2,10,10),m);
+    ion.position.set(-4+i*2,-2.5,(Math.random()-0.5)*1.5);
+    ion.userData={ phase:Math.random()*Math.PI*2, bY:ion.position.y };
+    psScn.add(ion); psMetalIons.push(ion);
+  }
+
+  // Covalent crosslink lines (between adjacent DOPA pairs)
+  const psCovBonds=[];
+  for(let i=0;i<4;i++){
+    const bG=new THREE.BufferGeometry();
+    bG.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6),3));
+    const bL=new THREE.Line(bG,new THREE.LineBasicMaterial({color:0xffd166,transparent:true,opacity:0,linewidth:3}));
+    psScn.add(bL); psCovBonds.push(bL);
+  }
+
+  // Metal coordination lines (ion → surface)
+  const psMetBonds=[];
+  for(let i=0;i<5;i++){
+    const bG=new THREE.BufferGeometry();
+    bG.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6),3));
+    const bL=new THREE.Line(bG,new THREE.LineBasicMaterial({color:0xffb347,transparent:true,opacity:0,linewidth:2}));
+    psScn.add(bL); psMetBonds.push(bL);
+  }
+
+  // Pi-stacking lines (mol → surface directly below)
+  const psPiBonds=[];
+  for(let i=0;i<8;i++){
+    const bG=new THREE.BufferGeometry();
+    bG.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6),3));
+    const bL=new THREE.Line(bG,new THREE.LineBasicMaterial({color:0xa78bfa,transparent:true,opacity:0,linewidth:2}));
+    psScn.add(bL); psPiBonds.push(bL);
+  }
+
+  let psT=0, psStep=0, psRunning=false;
+
+  // Step labels
+  function psSetStep(s){
+    psStep=s;
+    const lbl=['Idle — adjust controls','Water layer forming...','Proteins approaching...','Water layer disrupted','DOPA bonds forming','Crosslinking — hardening'];
+    const el=document.getElementById('ps-step-label'); if(el) el.textContent=lbl[Math.min(s,5)];
+    for(let i=0;i<5;i++){ const d=document.getElementById('psd-'+i); if(d) d.classList.toggle('active',i<s); }
+  }
+
+  // ─── Activate water for preview mode ─────────────────────
+  function psActivateWater(n){
+    psWaterMols.slice(0,n).forEach(w=>{
+      w.position.set((Math.random()-0.5)*9, 5+Math.random()*2, (Math.random()-0.5)*3);
+      w.userData.landed=false; w.userData.active=true;
+    });
+  }
+
+  // ─── Run animated sequence ────────────────────────────────
+  window.psRunSim = function() {
+    if(psRunning) return;
+    psRunning=true;
+    const btn=document.getElementById('ps-run-btn');
+    if(btn){ btn.classList.add('running'); btn.textContent='⏳ Simulating...'; }
+
+    // Full reset
+    psWaterMols.forEach(w=>{ w.userData.active=false; w.userData.landed=false;
+      w.children.forEach(c=>{ if(c.material) c.material.opacity=0; }); w.position.y=-30; });
+    psDOPAMols.forEach(m=>{ m.position.set(m.userData.bX,5,m.position.z); m.material.opacity=1; });
+    psDOPABonds.forEach(b=>b.material.opacity=0);
+    psDOPAGlows.forEach(g=>g.material.opacity=0);
+    psMetalIons.forEach(ion=>ion.material.opacity=0);
+    psCovBonds.forEach(b=>b.material.opacity=0);
+    psMetBonds.forEach(b=>b.material.opacity=0);
+    psPiBonds.forEach(b=>b.material.opacity=0);
+    psMetalPL.intensity=0; psHydPL.intensity=0;
+
+    const waterN=[8,16,20][psState.water];
+    const dopaN=[3,6,8][psState.dopa];
+    const bonds=psGetBonds(psState);
+
+    psSetStep(1);
+    setTimeout(()=>{ psWaterMols.slice(0,waterN).forEach(w=>{
+      w.position.set((Math.random()-0.5)*9,5+Math.random()*2,(Math.random()-0.5)*3);
+      w.userData.landed=false; w.userData.active=true;
+    }); },300);
+    setTimeout(()=>{ psSetStep(2); },1500);
+    setTimeout(()=>{
+      psSetStep(3);
+      if(psState.dopa>0) psWaterMols.forEach(w=>{ if(w.userData.landed) w.userData.dVX*=2; });
+    },2800);
+    setTimeout(()=>{
+      psSetStep(4);
+      psDOPABonds.forEach((b,i)=>{ if(i<dopaN) b.material.opacity=bonds.hbond?0.9:0; });
+      psDOPAGlows.forEach((g,i)=>{ if(i<dopaN) g.material.opacity=bonds.hbond?0.85:0; });
+      if(bonds.metal){ psMetalIons.forEach(ion=>ion.material.opacity=1); psMetalPL.intensity=1.5; }
+      if(bonds.cov)  { psCovBonds.forEach(b=>b.material.opacity=0.85); }
+      if(bonds.metal){ psMetBonds.forEach(b=>b.material.opacity=0.7); }
+      if(bonds.pi)   { psPiBonds.forEach(b=>b.material.opacity=0.7); psHydPL.intensity=1; }
+    },3800);
+    setTimeout(()=>{
+      psSetStep(5); psRunning=false;
+      if(btn){ btn.classList.remove('running'); btn.textContent='▶ Run Simulation'; }
+      psLiveUpdate();
+    },5200);
+  };
+
+  // ─── Animation loop ───────────────────────────────────────
+  function psAnimate(){
+    requestAnimationFrame(psAnimate);
+    psT+=0.016;
+
+    const dopaActive=[3,6,8][psState.dopa];
+    const bonds=psGetBonds(psState);
+    const oxT=Math.min(1, psState.oxidation/4);
+
+    // Pre-compute target colour (reuse objects — NO per-frame allocation)
+    _dopaTgt.setHex(DOPA_COLS[psState.protein]||0x00e5c8);
+    _finalCol.copy(_dopaTgt).lerp(_oxMix, oxT*0.8);
+
+    // ── DOPA molecules ────────────────────────────────────
+    psDOPAMols.forEach((mol,i)=>{
+      const active = i < dopaActive;
+      if(!active){
+        mol.material.opacity=Math.max(0, mol.material.opacity-0.05);
+        mol.position.y+=(9-mol.position.y)*0.07;
+        psDOPABonds[i].material.opacity=Math.max(0,psDOPABonds[i].material.opacity-0.06);
+        psDOPAGlows[i].material.opacity=Math.max(0,psDOPAGlows[i].material.opacity-0.06);
+        return;
+      }
+      // Active: ensure visible
+      if(mol.material.opacity<1) mol.material.opacity=Math.min(1,mol.material.opacity+0.08);
+
+      // Target Y: at surface (baseY) unless mid-run step 1 (descending)
+      const atSurface = !psRunning || psStep>=2;
+      const tY = atSurface ? mol.userData.bY : 5;
+      mol.position.x+=(mol.userData.bX-mol.position.x)*0.05;
+      mol.position.y+=(tY-mol.position.y)*0.05;
+      mol.rotation.y=Math.sin(psT*0.7+mol.userData.phase)*0.12;
+      mol.rotation.z=Math.sin(psT*0.5+mol.userData.phase+1)*0.07;
+
+      // Colour: lerp toward target (no new allocation)
+      mol.material.color.lerp(_finalCol,0.05);
+      mol.material.emissive.copy(_finalCol).multiplyScalar(0.2+oxT*0.1);
+
+      // OH groups: fade with oxidation
+      for(let ci=1;ci<=2;ci++){
+        const child=mol.children[ci]; if(!child||!child.material) continue;
+        const tOp=Math.max(0,1-oxT*0.95);
+        child.material.opacity+=(tOp-child.material.opacity)*0.06;
+      }
+
+      // Bond line (mol → surface)
+      const bp=psDOPABonds[i].geometry.attributes.position;
+      bp.setXYZ(0,mol.position.x,mol.position.y-0.25,mol.position.z);
+      bp.setXYZ(1,mol.userData.bX,-3.25,mol.position.z);
+      bp.needsUpdate=true;
+      psDOPAGlows[i].position.set(mol.userData.bX,-3.25,mol.position.z);
+      if(psDOPABonds[i].material.opacity>0.05){
+        psDOPABonds[i].material.opacity=0.6+Math.sin(psT*3+i)*0.2;
+        psDOPAGlows[i].material.emissiveIntensity=1.4+Math.sin(psT*4+i)*0.5;
+      }
+    });
+
+    // ── Water molecules ───────────────────────────────────
+    const waterN=[8,16,20][psState.water];
+    psWaterMols.forEach((w,i)=>{
+      const shouldShow = i<waterN;
+      if(!shouldShow){
+        // Fade & deactivate
+        let allFaded=true;
+        w.children.forEach(c=>{ if(c.material){ c.material.opacity=Math.max(0,c.material.opacity-0.04); if(c.material.opacity>0) allFaded=false; }});
+        if(allFaded){ w.userData.active=false; w.position.y=-30; }
+        return;
+      }
+      // Auto-activate in preview (not during run)
+      if(!w.userData.active && !psRunning){
+        w.position.set((Math.random()-0.5)*9,5+Math.random()*2,(Math.random()-0.5)*3);
+        w.userData.landed=false; w.userData.active=true;
+      }
+      if(!w.userData.active) return;
+      const ud=w.userData;
+      if(!ud.landed){
+        w.position.y-=ud.speed;
+        w.children.forEach(c=>{ if(c.material) c.material.opacity=Math.min(c.material.opacity+0.025,0.75); });
+        if(w.position.y<=ud.tY){ ud.landed=true; w.position.y=ud.tY; }
+      } else {
+        w.position.y=ud.tY+Math.sin(psT*2+ud.phase)*0.05;
+        w.position.x+=ud.dVX;
+        if(w.position.x>5||w.position.x<-5) ud.dVX*=-1;
+        w.rotation.y=psT*0.5+ud.phase;
+        // Push water away from DOPA at step 3+
+        if(psStep>=3&&psState.dopa>0){
+          psDOPAMols.slice(0,dopaActive).forEach(m=>{
+            const dx=w.position.x-m.position.x, dy=w.position.y-m.position.y;
+            const d=Math.sqrt(dx*dx+dy*dy);
+            if(d<1.1&&d>0){ const f=(1.1-d)*0.035; w.position.x+=dx/d*f; w.position.y+=dy/d*f; }
+          });
+        }
+      }
+    });
+
+    // ── Metal ions ────────────────────────────────────────
+    const tgtMetOp=psState.metalIons&&psStep>=4?1:0;
+    psMetalIons.forEach((ion,i)=>{
+      ion.material.opacity+=(tgtMetOp-ion.material.opacity)*0.07;
+      ion.position.y=ion.userData.bY+Math.sin(psT*1.5+ion.userData.phase)*0.12;
+      ion.rotation.y=psT*0.4;
+    });
+    const tgtMetPL=psState.metalIons&&psStep>=4?1.5:0;
+    psMetalPL.intensity+=(tgtMetPL-psMetalPL.intensity)*0.06;
+
+    // ── Covalent crosslinks ───────────────────────────────
+    psCovBonds.forEach((b,i)=>{
+      const m1=psDOPAMols[i*2], m2=psDOPAMols[i*2+1]; if(!m1||!m2) return;
+      const p=b.geometry.attributes.position;
+      p.setXYZ(0,m1.position.x,m1.position.y,m1.position.z);
+      p.setXYZ(1,m2.position.x,m2.position.y,m2.position.z);
+      p.needsUpdate=true;
+      if(b.material.opacity>0.02) b.material.opacity=0.5+Math.sin(psT*4+i)*0.25;
+    });
+
+    // ── Metal coord bonds (ion → surface atom directly below) ──
+    psMetBonds.forEach((b,i)=>{
+      const ion=psMetalIons[i]; if(!ion) return;
+      const p=b.geometry.attributes.position;
+      p.setXYZ(0,ion.position.x,ion.position.y,ion.position.z);
+      p.setXYZ(1,ion.position.x,-3.25,ion.position.z);
+      p.needsUpdate=true;
+      if(b.material.opacity>0.02) b.material.opacity=0.45+Math.sin(psT*2+i*0.7)*0.25;
+    });
+
+    // ── Pi-stacking bonds (each DOPA mol straight down to surface) ──
+    psPiBonds.forEach((b,i)=>{
+      const mol=psDOPAMols[i]; if(!mol) return;
+      const p=b.geometry.attributes.position;
+      p.setXYZ(0,mol.position.x,mol.position.y-0.3,mol.position.z);
+      p.setXYZ(1,mol.userData.bX,-3.25,mol.position.z);
+      p.needsUpdate=true;
+      if(b.material.opacity>0.02) b.material.opacity=0.45+Math.sin(psT*3+i)*0.2;
+    });
+    const tgtHydPL=bonds.pi&&psStep>=4?0.8:0;
+    psHydPL.intensity+=(tgtHydPL-psHydPL.intensity)*0.05;
+
+    // ── Surface: lerp colour + metalness (reuse objects) ───
+    _surfTgt.setHex(SURF_COL[psState.surface]||0x1a2535);
+    psSurfMat.color.lerp(_surfTgt,0.06);
+    const tgtMet=ATOM_MET[psState.surface]||0.3;
+    _atomTgt.setHex(ATOM_COL[psState.surface]||0x1e4060);
+    psSAtoms.forEach(a=>{ a.material.metalness+=(tgtMet-a.material.metalness)*0.06; a.material.color.lerp(_atomTgt,0.04); });
+
+    psCam.lookAt(0,-1,0);
+    psRen.render(psScn,psCam);
+  }
+  psAnimate();
+
+  // Init: preview water + initial readout
+  setTimeout(()=>{
+    psSetStep(0);
+    psActivateWater([8,16,20][psState.water]);
+    psLiveUpdate();
+    psDrawGauge(0);
+    psDrawGraphPH(5.0);
+    psDrawGraphDopa(2);
+  }, 400);
+
+})();
+
+// ============================================================
+// STAT BARS ANIMATION (IntersectionObserver)
+// ============================================================
+const statBars = document.querySelectorAll('.stat-bar-fill');
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const target = parseInt(e.target.dataset.target)||80;
+      e.target.style.width=target+'%';
+    }
+  });
+},{threshold:0.3});
+statBars.forEach(b=>observer.observe(b));
+</script>
+</body>
+</html>
