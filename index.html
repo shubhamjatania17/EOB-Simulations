@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adhesion Science</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030810;
+            --surface: #0a1120;
+            --card: rgba(13, 21, 38, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
+            
+            --lime: #c8ff00;
+            --teal: #00e5c8;
+            --cyan: #00b8ff;
+            --snow: #f0f4ff;
+            --muted: #6b849c;
+            --body: #a4b8cc;
+            
+            --nav-height: 80px;
+            --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--snow);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND BLOBS --- */
+        .blob-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            filter: blur(80px);
+            opacity: 0.4;
+        }
+
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            animation: move 20s infinite alternate;
+        }
+
+        .blob-1 {
+            background: radial-gradient(circle, var(--lime) 0%, transparent 70%);
+            top: -10%;
+            left: -10%;
+        }
+
+        .blob-2 {
+            background: radial-gradient(circle, var(--teal) 0%, transparent 70%);
+            bottom: -10%;
+            right: -10%;
+            animation-delay: -5s;
+        }
+
+        @keyframes move {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(100px, 100px) scale(1.2); }
+        }
+
+        /* --- NAVBAR --- */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 4rem;
+            background: rgba(3, 8, 16, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--snow);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .logo span {
+            color: var(--lime);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--body);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--lime);
+        }
+
+        /* --- SECTIONS --- */
+        section {
+            padding: 10rem 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .section-tag {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--lime);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 1.1;
+            margin-bottom: 2rem;
+        }
+
+        .section-desc {
+            font-size: 1.1rem;
+            color: var(--body);
+            max-width: 700px;
+            margin-bottom: 3rem;
+        }
+
+        /* --- HERO --- */
+        #hero {
+            text-align: center;
+            align-items: center;
+        }
+
+        #hero .section-desc {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- BUTTONS --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-radius: 100px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--lime);
+            color: var(--bg);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #d4ff33;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(200, 255, 0, 0.3);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--border);
+            color: var(--snow);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--lime);
+            color: var(--lime);
+            transform: translateY(-5px);
+        }
+
+        /* --- CARDS --- */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            border-color: rgba(200, 255, 0, 0.3);
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- PRESENTATION SECTION --- */
+        #presentation .card {
+            align-items: center;
+            text-align: center;
+        }
+
+        .ppt-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--teal);
+        }
+
+        /* --- CREDITS SECTION --- */
+        #credits {
+            text-align: center;
+            align-items: center;
+            min-height: auto;
+            padding-bottom: 6rem;
+        }
+
+        .team-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .team-member {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        .team-member:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--teal);
+        }
+
+        .member-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--snow);
+            margin-bottom: 0.5rem;
+        }
+
+        .member-id {
+            font-size: 0.8rem;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .member-repo a {
+            color: var(--lime);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .member-repo a:hover {
+            color: var(--snow);
+            text-decoration: underline;
+        }
+
+        .repo-link-container {
+            margin-top: 3rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            width: 100%;
+        }
+
+        .repo-link-container a {
+            color: var(--lime);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .repo-link-container a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            nav { padding: 0 2rem; }
+            section { padding: 8rem 2rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .section-title { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="blob-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <nav>
+        <a href="#" class="logo">Adhesion <span>Science</span></a>
+        <ul class="nav-links">
+            <li><a href="#gecko">Gecko Tapes</a></li>
+            <li><a href="#mussel">Mussel Glues</a></li>
+            <li><a href="#presentation">Presentation</a></li>
+            <li><a href="#credits">Credits</a></li>
+        </ul>
+    </nav>
+
+    <section id="hero">
+        <span class="section-tag">Welcome to EOB Simulations</span>
+        <h1 class="section-title">The Science of <i>Adhesion</i><br>Inspired by Nature</h1>
+        <p class="section-desc">
+            Venture into the microscopic world of biomimetic adhesion. From the dry grip of gecko feet to the chemical bonding of marine mussels, explore the engineering marvels of the natural world.
+        </p>
+        <div style="display: flex; gap: 1.5rem; justify-content: center;">
+            <a href="#gecko" class="btn btn-primary">Start Exploring</a>
+            <a href="#presentation" class="btn btn-outline">View Presentations</a>
+        </div>
+    </section>
+
+    <!-- GECKO SECTION -->
+    <section id="gecko">
+        <div class="card">
+            <div>
+                <span class="section-tag">Dry Adhesion</span>
+                <h2 class="card-title">Gecko Inspired Tapes</h2>
+                <p class="section-desc">
+                    Explore the extraordinary physics of dry adhesion. Inspired by nature's nanoscale engineering, this simulation demonstrates how billions of spatulae use van der Waals forces to achieve incredible grip without any glue or residue.
+                </p>
+            </div>
+            <div>
+                <a href="gecko_adhesion.html" class="btn btn-primary">Open Simulation</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- MUSSEL SECTION -->
+    <section id="mussel">
+        <div class="card">
+            <div>
+                <span class="section-tag">Wet Adhesion</span>
+                <h2 class="card-title">Mussel Inspired Glues</h2>
+                <p class="section-desc">
+                    Uncover the secrets of nature's underwater superglue. This simulation dives into the chemistry of DOPA-based protein bonding, showing how mussels achieve permanent and powerful adhesion even in the most turbulent marine environments.
+                </p>
+            </div>
+            <div>
+                <a href="mussel_adhesion.html" class="btn btn-primary">Open Simulation</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRESENTATION SECTION -->
+    <section id="presentation">
+        <span class="section-tag">Deep Dive</span>
+        <h2 class="section-title">Project Presentations</h2>
+        <div class="grid">
+            <div class="card">
+                <div class="ppt-icon">🦎</div>
+                <h3 class="card-title">Gecko Tapes</h3>
+                <p class="section-desc">Technical breakdown of hierarchical dry adhesion and van der Waals interactions.</p>
+                <!-- REPLACE THE HREF BELOW WITH THE GECKO CANVA LINK -->
+                <a href="[CANVA_GECKO_LINK]" target="_blank" class="btn btn-outline">View Presentation</a>
+            </div>
+            <div class="card">
+                <div class="ppt-icon">🐚</div>
+                <h3 class="card-title">Mussel Glues</h3>
+                <p class="section-desc">Analysis of catechol-based chemical bonding and underwater adhesive mechanisms.</p>
+                <!-- REPLACE THE HREF BELOW WITH THE MUSSEL CANVA LINK -->
+                <a href="[CANVA_MUSSEL_LINK]" target="_blank" class="btn btn-outline">View Presentation</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CREDITS SECTION -->
+    <section id="credits">
+        <span class="section-tag">Our Team</span>
+        <h2 class="section-title">Contributors</h2>
+        
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="member-name">Kabir Goswami</div>
+                <div class="member-id">I026</div>
+                <div class="member-repo"><a href="[REPO_LINK]" target="_blank">View Repo</a></div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">Nandini Goyal</div>
+                <div class="member-id">I027</div>
+                <div class="member-repo"><a href="[REPO_LINK]" target="_blank">View Repo</a></div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">Kanak Gupta</div>
+                <div class="member-id">I028</div>
+                <div class="member-repo"><a href="[REPO_LINK]" target="_blank">View Repo</a></div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">Shubham Jatania</div>
+                <div class="member-id">I034</div>
+                <div class="member-repo"><a href="[REPO_LINK]" target="_blank">View Repo</a></div>
+            </div>
+        </div>
+    </section>
+
+    <footer style="padding: 4rem; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.8rem;">
+        &copy; 2026 Adhesion Science. Built with Physics & Chemistry.
+    </footer>
+
+    <script>
+        // Smooth reveal animation on scroll
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = "1";
+                    entry.target.style.transform = "translateY(0)";
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section, .card, .team-member').forEach(el => {
+            el.style.opacity = "0";
+            el.style.transform = "translateY(30px)";
+            el.style.transition = "var(--transition)";
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
