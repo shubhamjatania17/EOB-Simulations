@@ -11,7 +11,7 @@ This repository contains interactive web simulations designed to demonstrate:
 ## 👥 The Team
 
 - **Kabir Goswami** (I026)
-- **Nandini Goyal** (I027)
+- **Nandini Goyal** (I027) 
 - **Kanak Gupta** (I028)
 - **Shubham Jatania** (I034)
 
