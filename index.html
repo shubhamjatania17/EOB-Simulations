@@ -441,17 +441,11 @@
             padding-top: 2rem;
             border-top: 1px solid var(--border);
             width: 100%;
-        }
-
-        .repo-link-container a {
-            color: var(--green);
-            text-decoration: none;
-            font-weight: 500;
-            transition: var(--transition);
-        }
-
-        .repo-link-container a:hover {
-            text-decoration: underline;
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         /* --- RESPONSIVE --- */
@@ -605,7 +599,7 @@
             </div>
         </div>
 
-        <div class="repo-link-container" style="display: flex; gap: 1.5rem; justify-content: center; align-items: center; flex-wrap: wrap;">
+        <div class="repo-link-container">
             <a href="https://github.com/shubhamjatania17/EOB-Simulations" target="_blank" class="btn btn-outline" style="padding: 1rem 3rem;">View Repository</a>
             <a href="https://linktr.ee/eob.research" target="_blank" class="btn btn-primary" style="padding: 1rem 3rem;">Research and Documentation</a>
         </div>
