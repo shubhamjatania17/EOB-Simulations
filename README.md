@@ -5,8 +5,8 @@ A comprehensive bio-mimetic simulation suite exploring the extraordinary physics
 ## 🚀 Overview
 
 This repository contains interactive web simulations designed to demonstrate:
-- **Gecko Adhesion**: How geckos use nanoscale setae and spatulae to leverage Van der Waals forces.
-- **Mussel Adhesion**: The chemical bonding mechanisms of mussels using DOPA-based proteins to stick underwater.
+- **Gecko Feet Adhesion**: How geckos use nanoscale setae and spatulae to leverage Van der Waals forces.
+- **Mussel Glue Adhesion**: The chemical bonding mechanisms of mussels using DOPA-based proteins to stick underwater.
 
 ## 👥 The Team
 
