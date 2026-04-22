@@ -458,6 +458,15 @@
         @media (max-width: 768px) {
             .nav-links { display: none; }
             .section-title { font-size: 2.5rem; }
+            .hero-btns { flex-direction: column; width: 100%; max-width: 300px; margin: 0 auto; }
+            .btn { width: 100%; justify-content: center; }
+            .card { padding: 2rem 1.5rem; }
+        }
+
+        @media (max-width: 480px) {
+            .section-title { font-size: 2.1rem; }
+            section { padding: 6rem 1.2rem; }
+            .repo-link-container { flex-direction: column; }
         }
     </style>
 </head>
@@ -484,7 +493,7 @@
         <p class="section-desc">
             Venture into the microscopic world of biomimetic adhesion. From the dry grip of gecko feet to the chemical bonding of marine mussels, explore the engineering marvels of the natural world.
         </p>
-        <div style="display: flex; gap: 1.5rem; justify-content: center;">
+        <div class="hero-btns" style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;">
             <a href="#gecko" class="btn btn-primary">Start Exploring</a>
             <a href="#presentation" class="btn btn-outline">View Presentations</a>
         </div>

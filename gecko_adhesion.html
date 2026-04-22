@@ -554,12 +554,49 @@ footer {
   .sim-layout .panel:last-child { grid-column: span 1; }
   .two-col, .three-col, .opt-layout, .vdw-layout { grid-template-columns: 1fr; gap: 3rem; }
   .nav-links { display: none; }
-  .tl-track::before { left: 24px; }
-  .tl-item { grid-template-columns: 24px 1fr; gap: 1.5rem; }
-  .tl-empty, .tl-item:nth-child(even) .tl-card:first-child { display: none!important; }
+  .tl-track::before { left: 24px; transform: none; }
+  .tl-item { grid-template-columns: 40px 1fr; gap: 1rem; }
+  .tl-item > div:nth-child(2) { grid-column: 1; }
+  .tl-item > .tl-card:not(.tl-empty) { grid-column: 2; }
+  .tl-empty { display: none!important; }
+  .tl-item:nth-child(even) .tl-card:first-child { display: none!important; }
   .hero-title { font-size: clamp(3rem, 15vw, 6rem); }
+  .hero-stats { gap: 1.5rem; justify-content: center; }
+  .hsep { display: none; }
   .cmp-grid { grid-template-columns: 1fr; }
   .cmp-div { height: 2px; width: 100%; margin: 2rem 0; }
+  .canvas-badge { font-size: 0.6rem; padding: 0.3rem 0.6rem; }
+  .canvas-force { font-size: 0.65rem; padding: 0.4rem 0.8rem; }
+  .obj-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+}
+
+@media (max-width:500px) {
+  nav { padding: 0.9rem 1.2rem; }
+  section { padding: 4rem 1.2rem 3rem; display: block; }
+  .section-tag { left: 0; top: 0; position: relative; display: block; margin-bottom: 1.5rem; }
+  .section-title { font-size: 2.2rem; }
+  .panel { padding: 1.2rem; }
+  .canvas-force { top: auto; bottom: 1rem; right: 1rem; font-size: 0.6rem; }
+  .obj-grid { grid-template-columns: 1fr; }
+  .adhesion-compare { grid-template-columns: 1fr; }
+  .obj-demo-header, .obj-demo-canvases { grid-template-columns: 1fr; }
+  .obj-demo-canvas-wrap:first-child { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .vdw-layout { gap: 1.5rem; }
+  .sim-layout { grid-template-columns: 1fr !important; display: flex; flex-direction: column; }
+  .sim-center { order: -1; min-height: 350px; }
+  .tl-item { gap: 0.8rem; }
+  .tl-card { padding: 0.9rem; }
+  .tl-title { font-size: 0.8rem; }
+  .tl-body { font-size: 0.75rem; }
+  .cmp-side { padding: 1.5rem 0.8rem; }
+  .cmp-head { font-size: 1.3rem; margin-bottom: 1rem; }
+  .cmp-row { flex-direction: column; align-items: flex-start; gap: 0.2rem; padding: 0.8rem 0; }
+  .cmp-prop { font-size: 0.75rem; }
+  .cmp-val { font-size: 0.8rem; }
+  .hero-stats { flex-direction: column; gap: 1.5rem; align-items: center; }
+  .hstat-val { font-size: 2rem; }
+  .opt-layout { display: flex; flex-direction: column; gap: 2rem; }
+  .opt-layout > div:last-child > div:first-child { grid-template-columns: 1fr !important; }
 }
 </style>
 </head>
